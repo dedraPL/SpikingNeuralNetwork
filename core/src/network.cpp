@@ -85,7 +85,7 @@ namespace SNN {
 
         return &graphOrder;
     }
-    
+
     std::vector<double> Network::run(std::vector<double> inputs)
     {
         if (inputs.size() != inputSize)
