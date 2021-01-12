@@ -6,7 +6,6 @@
 #include <list>
 #include <exception>
 #include <algorithm>
-#include <thread>
 
 #include "neuron.hpp"
 #include "synapse.hpp"
@@ -15,6 +14,7 @@ namespace SNN {
     class Network {
     public:
         enum class NodeMode { input, output, hidden };
+        
         struct Node {
             Neuron* node;
             NodeMode mode;

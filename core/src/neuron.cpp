@@ -1,8 +1,8 @@
 #include "neuron.hpp"
 
-namespace SNN
-{ 
-    Neuron::Neuron(std::string name, double a, double b, double c, double d, uint32_t index) {
+namespace SNN { 
+    Neuron::Neuron(std::string name, NEURON_TYPE a, NEURON_TYPE b, NEURON_TYPE c, NEURON_TYPE d, uint32_t index)
+    {
         this->name = name;
         this->a = a;
         this->b = b;
@@ -14,24 +14,26 @@ namespace SNN
         this->prevU = -14;
     } 
 
-    double Neuron::AddCurrent(double i)
+    NEURON_TYPE Neuron::AddCurrent(NEURON_TYPE i)
     {
         this->current += i;
         return this->current;
     }
 
-
-    std::pair<double, double> Neuron::CalculatePotential() {
-        double Vans, Uans;
-        if(this->prevV < 35) {
-            double dv = (0.04 * this->prevV + 5) * this->prevV + 140 - this->prevU;
+    std::pair<NEURON_TYPE, NEURON_TYPE> Neuron::CalculatePotential()
+    {
+        NEURON_TYPE Vans, Uans;
+        if(this->prevV < 35) 
+        {
+            NEURON_TYPE dv = (0.04 * this->prevV + 5) * this->prevV + 140 - this->prevU;
             Vans = this->prevV + (dv + this->current) * this->dt;
-            double du = this->a * (this->b * this->prevV - this->prevU);
+            NEURON_TYPE du = this->a * (this->b * this->prevV - this->prevU);
             Uans = this->prevU + this->dt * du;
             if(Vans > 35)
                 Vans = 35;
         }
-        else {
+        else 
+        {
             Vans = this->c;
             Uans = this->prevU + this->d;
         }

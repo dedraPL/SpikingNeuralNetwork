@@ -1,17 +1,19 @@
 #pragma once
 
+#define SYNAPSE_TYPE float
+
 #include <string>
 
 namespace SNN {
     class Synapse {
     public:
-        double r;
+        SYNAPSE_TYPE r;
         uint32_t dest;
         
-        Synapse(uint32_t dest, double r);
+        Synapse(uint32_t dest, SYNAPSE_TYPE r);
 
-        double CalculateCurrent(double v1, double v2);
-        void ChangeResistance(double res);
+        SYNAPSE_TYPE CalculateCurrent(SYNAPSE_TYPE v1, SYNAPSE_TYPE v2);
+        void ChangeResistance(SYNAPSE_TYPE res);
     };
 
 }
