@@ -33,7 +33,7 @@ example matrix
 ```
 produces network like this
 
-![graph](/doc/images/graph.png)
+![graph](/doc/images/graph.PNG)
 
 where all edges have weight = 1
 
