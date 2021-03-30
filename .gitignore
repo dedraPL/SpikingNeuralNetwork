@@ -4,6 +4,7 @@ test.py
 test2.py
 test3.py
 *.txt
+.vscode
 
 #python
 .venv
