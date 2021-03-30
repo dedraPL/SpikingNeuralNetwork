@@ -3,12 +3,14 @@
 #include <string>
 #include <exception>
 #include <map>
+#include <fstream>
 #include "network.hpp"
 
 namespace SNN {
     class NetworkLoader {
     public:
         static void load(std::string filename, Network* network);
+        static void loadBin(std::string filename, Network* network);
 
         class FileNotFoundError : public std::exception {
             std::string _msg;
@@ -21,5 +23,9 @@ namespace SNN {
                 return _msg.c_str();
             }
         };
+    
+    private:
+        template<class T>
+        static void loadAndProcessBinFile(std::fstream* file, uint8_t config, Network* network);
     };
 }

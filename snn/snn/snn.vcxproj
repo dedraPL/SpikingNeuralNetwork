@@ -129,6 +129,9 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <AdditionalOptions>-std=c++17 -Xcompiler "/std:c++17" %(AdditionalOptions)</AdditionalOptions>
+      <InterleaveSourceInPTX>false</InterleaveSourceInPTX>
+      <CodeGeneration>%(CodeGeneration)</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,10 +162,15 @@
     <ClCompile Include="..\..\core\src\synapse.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\core\src\cudaNetwork.cuh" />
     <ClInclude Include="..\..\core\src\network.hpp" />
     <ClInclude Include="..\..\core\src\networkLoader.hpp" />
     <ClInclude Include="..\..\core\src\neuron.hpp" />
     <ClInclude Include="..\..\core\src\synapse.hpp" />
+    <ClInclude Include="..\..\core\src\utils.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\..\core\src\cudaNetwork.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
