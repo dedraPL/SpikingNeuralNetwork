@@ -51,8 +51,11 @@ namespace SNN {
 
         std::map<uint32_t, Network::Node*> graph;
         std::map<uint32_t, Network::Node*> getGraph() { return graph; };
+        std::vector<uint32_t>& getInputsIdx() { return inputsIdx; };
+        std::vector<uint32_t>& getOutputsIdx() { return outputsIdx; };
         uint32_t inputSize = 0, outputSize = 0;
         std::vector<std::vector<uint32_t>> graphOrder;
     private:
+        std::vector<uint32_t> inputsIdx, outputsIdx;
     };
 }

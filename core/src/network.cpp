@@ -17,6 +17,11 @@ namespace SNN {
             {
                 queue.push_back(key);
                 order.push_back({ 0, key });
+                inputsIdx.push_back(key);
+            }
+            else if (val->mode == NodeMode::output)
+            {
+                outputsIdx.push_back(key);
             }
         }
 
