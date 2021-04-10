@@ -7,7 +7,9 @@ Read txt or bin file with adjacency matrix merged with weight matrix of the netw
 
 After reading input file you need to call BFSSort on the network object to slice the network and make layered structure of the network. Layered structure of the network is especially required by the GPU implementation, because it runs layer after layer simulation.
 
-Currently there is available only Izhikevich model. I will add more models in the future
+Currently there is available only Izhikevich model. I will add more models in the future.
+
+
 
 ## INPUT FILE FORMAT
 ### TXT FILE
@@ -53,10 +55,16 @@ where all edges have weight = 1
 1. input neuron indexes (len of I)
 1. output neuron indexes (len of O)
 1. adjacency matrix (len of N*N) with specified precision (float or double)
+
+# KNOWN ISSUES
+
+* loading txt file with loadBin results with huge memory consumption
+
 # TODO
 - [x] working CPU single threaded version
 - [x] working GPU version
-- [ ] save network to txt and bin file
+- [x] save network to txt and bin file
 - [ ] multithread CPU version
 - [ ] template class with precision sellection of the Neuron and Synapse
 - [ ] more neuron models
+- [ ] documentation and comments 
