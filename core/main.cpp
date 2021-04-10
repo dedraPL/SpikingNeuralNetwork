@@ -24,6 +24,12 @@ int main()
 	bool enableDumpToFile = true;
 	uint8_t floatPrintPrecision = 17;
 	std::string netFileFilename = "C:\\Users\\drozd\\Documents\\Python Scripts\\snn\\testnet3.txt";
+	/*{
+		SNN::CUDANetwork* network = new SNN::CUDANetwork();
+		SNN::NetworkLoader::loadBin(netFileFilename, (SNN::Network*)network);
+		network->BFSSort();
+		SNN::NetworkLoader::saveBin("C:\\Users\\drozd\\Documents\\Python Scripts\\snn\\testnet3_save.txt", network);
+	}*/
 	{
 		SNN::CUDANetwork* network = new SNN::CUDANetwork();
 		SNN::NetworkLoader::loadBin(netFileFilename, (SNN::Network*)network);

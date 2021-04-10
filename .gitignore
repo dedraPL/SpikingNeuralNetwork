@@ -9,6 +9,8 @@ test3.py
 #python
 .venv
 __pycache__
+*.py
+*.whl
 
 #c++
 .vs
