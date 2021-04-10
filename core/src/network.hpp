@@ -21,13 +21,13 @@ namespace SNN {
             std::vector<Synapse*> conn;
             std::vector<uint32_t> sources;
 
-            void update(Neuron* node, NodeMode mode, std::vector<Synapse*> conn) {
-                this->node = node;
+            void update(Neuron& node, NodeMode mode, std::vector<Synapse*> conn) {
+                this->node = &node;
                 this->mode = mode;
                 this->conn = conn;
             }
 
-            Neuron getNode() { return *node; }
+            Neuron* getNode() { return node; }
             NodeMode getMode() { return mode; }
             std::vector<Synapse*> getConn() { return conn; }
             std::vector<uint32_t> getSources() { return sources; }
@@ -51,8 +51,8 @@ namespace SNN {
 
         std::map<uint32_t, Network::Node*> graph;
         std::map<uint32_t, Network::Node*> getGraph() { return graph; };
-        std::vector<uint32_t>& getInputsIdx() { return inputsIdx; };
-        std::vector<uint32_t>& getOutputsIdx() { return outputsIdx; };
+        std::vector<uint32_t>* getInputsIdx() { return &inputsIdx; };
+        std::vector<uint32_t>* getOutputsIdx() { return &outputsIdx; };
         uint32_t inputSize = 0, outputSize = 0;
         std::vector<std::vector<uint32_t>> graphOrder;
     private:

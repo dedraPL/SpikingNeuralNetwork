@@ -79,12 +79,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.pyd</TargetExt>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\CPU</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\CPU\</OutDir>
     <TargetName>snn</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\CPU</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\CPU\</OutDir>
     <TargetName>snn</TargetName>
     <TargetExt>.pyd</TargetExt>
   </PropertyGroup>

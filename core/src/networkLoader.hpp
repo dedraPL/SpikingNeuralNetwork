@@ -9,18 +9,18 @@
 namespace SNN {
     class NetworkLoader {
     public:
-        static void load(std::string filename, Network* network);
-        static void loadBin(std::string filename, Network* network);
+        static void load(std::string filename, Network& network);
+        static void loadBin(std::string filename, Network& network);
 
         /// @brief Saves the network to the file. Requires to run Network::BFSSort before saving
         /// @param filename 
         /// @param network Network to save
-        static void save(std::string filename, Network* network);
+        static void save(std::string filename, Network& network);
 
         /// @brief Saves the network to the binary file. Requires to run Network::BFSSort before saving
         /// @param filename 
         /// @param network Network to save
-        static void saveBin(std::string filename, Network* network);
+        static void saveBin(std::string filename, Network& network);
 
         class FileNotFoundError : public std::exception {
             std::string _msg;

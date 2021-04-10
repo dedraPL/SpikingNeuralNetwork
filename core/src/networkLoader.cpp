@@ -10,7 +10,7 @@
 using namespace std;
 
 namespace SNN {
-    void NetworkLoader::load(std::string filename, Network* network) 
+    void NetworkLoader::load(std::string filename, Network& network) 
     {
         fstream file;
         file.open(filename, ios::in);
@@ -40,10 +40,10 @@ namespace SNN {
             }
             file.close();
 
-            network->inputSize = inputs.size();
-            network->outputSize = outputs.size();
+            network.inputSize = inputs.size();
+            network.outputSize = outputs.size();
 
-            network->graph = map<uint32_t, Network::Node*>();
+            network.graph = map<uint32_t, Network::Node*>();
             for(uint32_t x = 0; x != matrix.size(); x++) 
             {
                 Network::NodeMode mode;
@@ -81,27 +81,27 @@ namespace SNN {
                     if(matrix[x][y] != 0) 
                     {
                         conn.push_back(new Synapse(y, matrix[x][y]));
-                        auto it = network->graph.find(y);
-                        if(it == network->graph.end()) 
+                        auto it = network.graph.find(y);
+                        if(it == network.graph.end()) 
                         {
-                            network->graph.insert({y, new Network::Node});
+                            network.graph.insert({y, new Network::Node});
                         }
-                        network->graph[y]->sources.push_back(x);
+                        network.graph[y]->sources.push_back(x);
                     }
                 }
-                auto it = network->graph.find(x);
-                if(it == network->graph.end()) 
+                auto it = network.graph.find(x);
+                if(it == network.graph.end()) 
                 {
-                    network->graph.insert({x, new Network::Node});
+                    network.graph.insert({x, new Network::Node});
                 }
-                network->graph[x]->update(node, mode, conn);
+                network.graph[x]->update(*node, mode, conn);
             }
         }
         else 
             throw NetworkLoader::FileNotFoundError(filename);
     }
 
-    void NetworkLoader::loadBin(std::string filename, Network* network)
+    void NetworkLoader::loadBin(std::string filename, Network& network)
     {
         fstream file;
         file.open(filename, ios::in || ios::binary);
@@ -112,11 +112,11 @@ namespace SNN {
             
             if (config & 1)
             {
-                loadAndProcessBinFile<float>(&file, config, network);
+                loadAndProcessBinFile<float>(&file, config, &network);
             }
             else
             {
-                loadAndProcessBinFile<double>(&file, config, network);
+                loadAndProcessBinFile<double>(&file, config, &network);
             }
             
             file.close();
@@ -125,30 +125,30 @@ namespace SNN {
             throw NetworkLoader::FileNotFoundError(filename);
     }
 
-    void NetworkLoader::save(std::string filename, Network* network)
+    void NetworkLoader::save(std::string filename, Network& network)
     {
-        if (network->graph.size() > 0 && network->getInputsIdx().size() > 0 && network->getOutputsIdx().size() > 0)
+        if (network.graph.size() > 0 && network.getInputsIdx()->size() > 0 && network.getOutputsIdx()->size() > 0)
         {
             fstream file;
             file.open(filename, ios::out);
-
-            for (auto const& val : network->getInputsIdx())
+            
+            for (auto const& val : *network.getInputsIdx())
             {
                 file << val;
-                if (&val != &network->getInputsIdx().back())
+                if (&val != &network.getInputsIdx()->back())
                     file << " ";
             }
             file << std::endl;
-            for (auto const& val : network->getOutputsIdx())
+            for (auto const& val : *network.getOutputsIdx())
             {
                 file << val;
-                if (&val != &network->getOutputsIdx().back())
+                if (&val != &network.getOutputsIdx()->back())
                     file << " ";
             }
             file << std::endl;
 
-            uint32_t size = network->graph.size();
-            for (auto const& [key, val] : network->graph)
+            uint32_t size = network.graph.size();
+            for (auto const& [key, val] : network.graph)
             {
                 std::vector<Synapse*> conn = val->getConn();
                 std::sort(std::begin(conn), std::end(conn), [](Synapse* a, Synapse* b)
@@ -177,9 +177,9 @@ namespace SNN {
             throw NetworkLoader::InvalidNetworkError();
     }
 
-    void NetworkLoader::saveBin(std::string filename, Network* network)
+    void NetworkLoader::saveBin(std::string filename, Network& network)
     {
-        if (network->graph.size() > 0 && network->getInputsIdx().size() > 0 && network->getOutputsIdx().size() > 0)
+        if (network.graph.size() > 0 && network.getInputsIdx()->size() > 0 && network.getOutputsIdx()->size() > 0)
         {
             fstream file;
             file.open(filename, ios::out | ios::binary);
@@ -187,24 +187,25 @@ namespace SNN {
             uint8_t config = 0;
             config |= typeid(Synapse::r) == typeid(float);
             file.write(reinterpret_cast<const char*>(&config), sizeof(config));
-            uint32_t size = network->graph.size();
+            uint32_t size = network.graph.size();
             file.write(reinterpret_cast<const char*>(&size), sizeof(size));
-            uint32_t io_size = network->getInputsIdx().size();
+            uint32_t io_size = network.getInputsIdx()->size();
             file.write(reinterpret_cast<const char*>(&io_size), sizeof(io_size));
-            io_size = network->getOutputsIdx().size();
+            io_size = network.getOutputsIdx()->size();
             file.write(reinterpret_cast<const char*>(&io_size), sizeof(io_size));
 
-            std::vector<uint32_t> inputs, outputs;
-            inputs = network->getInputsIdx();
-            outputs = network->getOutputsIdx();
+            std::vector<uint32_t>* inputs;
+            std::vector<uint32_t>* outputs;
+            inputs = network.getInputsIdx();
+            outputs = network.getOutputsIdx();
 
-            file.write((char*)&inputs[0], inputs.size() * sizeof(uint32_t));
-            file.write((char*)&outputs[0], outputs.size() * sizeof(uint32_t));
+            file.write((char*)&inputs[0], inputs->size() * sizeof(uint32_t));
+            file.write((char*)&outputs[0], outputs->size() * sizeof(uint32_t));
 
             if (config & 1)
-                processAndSaveBinFile<float>(&file, network);
+                processAndSaveBinFile<float>(&file, &network);
             else
-                processAndSaveBinFile<double>(&file, network);
+                processAndSaveBinFile<double>(&file, &network);
 
             file.close();
         }
@@ -289,7 +290,7 @@ namespace SNN {
             {
                 network->graph.insert({ x, new Network::Node });
             }
-            network->graph[x]->update(node, mode, conn);
+            network->graph[x]->update(*node, mode, conn);
         }
     }
 
