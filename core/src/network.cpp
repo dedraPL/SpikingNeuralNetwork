@@ -121,4 +121,14 @@ namespace SNN {
         }
         return output;
     }
+
+    Eigen::VectorXd Network::rund(const Eigen::Ref<const Eigen::VectorXd>& inputs)
+    {
+        return this->run<Eigen::VectorXd>(inputs);
+    }
+
+    Eigen::VectorXf Network::runf(const Eigen::Ref<const Eigen::VectorXf>& inputs)
+    {
+        return this->run<Eigen::VectorXf>(inputs);
+    }
 }

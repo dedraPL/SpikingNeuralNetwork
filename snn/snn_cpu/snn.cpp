@@ -1,5 +1,9 @@
+#include <string>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>
+#include <Eigen/Dense>
 
 #include "neuron.hpp"
 #include "synapse.hpp"
@@ -43,9 +47,21 @@ PYBIND11_MODULE(snn, m) {
 		.def("run", &SNN::Network::run)
 		.def_readwrite("graph", &SNN::Network::graph)
 		.def_readwrite("graphOrder", &SNN::Network::graphOrder)
+	py::class_<SNN::Network> Network(m, "Network");
+	Network.def(py::init<>());
+	Network.def("BFSSort", &SNN::Network::BFSSort);
+	//.def("run", &SNN::Network::run)
+	Network.def("run", static_cast<std::vector<double>(SNN::Network::*)(std::vector<double>)>(&SNN::Network::run));
+	Network.def("rund", &SNN::Network::rund);
+	Network.def("runf", &SNN::Network::runf);
+	Network.def("getGraph", &SNN::Network::getGraph, py::return_value_policy::reference);
+	Network.def_readwrite("graph", &SNN::Network::graph, py::return_value_policy::reference);
+	Network.def_readwrite("graphOrder", &SNN::Network::graphOrder);
+
 		;
 
 	py::class_<SNN::Network::Node>(m, "Node")
+		.def(py::init<>())
 		.def("update", &SNN::Network::Node::update)
 		.def_readwrite("node", &SNN::Network::Node::node, py::return_value_policy::reference)
 		.def_readwrite("conn", &SNN::Network::Node::conn)
