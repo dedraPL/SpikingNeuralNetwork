@@ -8,6 +8,7 @@
 #include "neuron.hpp"
 #include "synapse.hpp"
 #include "networkLoader.hpp"
+#include "networkEditor.hpp"
 #include "network.hpp"
 #include "encoders/encoder.hpp"
 #include "decoders/decoder.hpp"
@@ -129,12 +130,14 @@ PYBIND11_MODULE(snn, m) {
 		.def_static("saveBin", &SNN::NetworkLoader::saveBin)
 		;
 
-	py::class_<SNN::Network>(m, "Network")
-		.def(py::init<>())
-		.def("BFSSort", &SNN::Network::BFSSort)
-		.def("run", &SNN::Network::run)
-		.def_readwrite("graph", &SNN::Network::graph)
-		.def_readwrite("graphOrder", &SNN::Network::graphOrder)
+	py::class_<SNN::NetworkEditor>(m, "NetworkEditor")
+		.def_static("addHiddenNode", &SNN::NetworkEditor::addHiddenNode)
+		.def_static("addNode", &SNN::NetworkEditor::addNode)
+		.def_static("addSynapse", &SNN::NetworkEditor::addSynapse)
+		.def_static("removeNode", &SNN::NetworkEditor::removeNode)
+		.def_static("removeSynapse", &SNN::NetworkEditor::removeSynapse)
+		;
+
 	py::class_<SNN::Network> Network(m, "Network");
 	Network.def(py::init<>());
 	Network.def("BFSSort", &SNN::Network::BFSSort);
@@ -146,6 +149,11 @@ PYBIND11_MODULE(snn, m) {
 	Network.def_readwrite("graph", &SNN::Network::graph, py::return_value_policy::reference);
 	Network.def_readwrite("graphOrder", &SNN::Network::graphOrder);
 
+	py::enum_<SNN::Network::NodeMode>(Network, "NodeMode")
+		.value("input", SNN::Network::NodeMode::input)
+		.value("hidden", SNN::Network::NodeMode::hidden)
+		.value("output", SNN::Network::NodeMode::output)
+		.export_values()
 		;
 
 	py::class_<SNN::Network::Node>(m, "Node")

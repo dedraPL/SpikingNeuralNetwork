@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\core\main.cpp" />
     <ClCompile Include="..\..\core\src\network.cpp" />
+    <ClCompile Include="..\..\core\src\NetworkEditor.cpp" />
     <ClCompile Include="..\..\core\src\networkLoader.cpp" />
     <ClCompile Include="..\..\core\src\neuron.cpp" />
     <ClCompile Include="..\..\core\src\synapse.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\..\core\src\encoders\encoder.hpp" />
     <ClInclude Include="..\..\core\src\encoders\transparent.hpp" />
     <ClInclude Include="..\..\core\src\network.hpp" />
+    <ClInclude Include="..\..\core\src\NetworkEditor.hpp" />
     <ClInclude Include="..\..\core\src\networkLoader.hpp" />
     <ClInclude Include="..\..\core\src\neuron.hpp" />
     <ClInclude Include="..\..\core\src\synapse.hpp" />
