@@ -40,7 +40,10 @@ PYBIND11_MODULE(snn, m) {
 	py::class_<SNN::Network>(m, "Network")
 		.def(py::init<>())
 		.def("BFSSort", &SNN::Network::BFSSort)
-		.def("run", &SNN::Network::run)
+		//.def("run", &SNN::Network::run)
+		.def("run", static_cast<std::vector<double>(SNN::Network::*)(std::vector<double>)>(&SNN::Network::run))
+		.def("rund", &SNN::Network::rund)
+		.def("runf", &SNN::Network::runf)
 		.def_readwrite("graph", &SNN::Network::graph)
 		.def_readwrite("graphOrder", &SNN::Network::graphOrder)
 		;

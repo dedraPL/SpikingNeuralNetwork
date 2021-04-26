@@ -9,14 +9,102 @@
 #include "synapse.hpp"
 #include "networkLoader.hpp"
 #include "network.hpp"
+#include "encoders/encoder.hpp"
+#include "decoders/decoder.hpp"
+#include "encoders/transparent.hpp"
+#include "decoders/transparent.hpp"
+#include "decoders/averageOverTime.hpp"
+#include "decoders/binary.hpp"
 
 namespace py = pybind11;
 
+template<template<typename> class T, typename type>
+void declareEncoder(py::module& m, const char* className)
+{
+	py::class_<T<type>, SNN::Encoder::IEncoder<type>>(m, className)
+		.def(py::init<>())
+		.def("encode", &T<type>::encode);
+}
+
+template<template<typename> class T, typename type>
+void declareDecoder(py::module& m, const char* className)
+{
+	py::class_<T<type>, SNN::Decoder::IDecoder<type>>(m, className)
+		.def(py::init<>())
+		.def("decode", &T<type>::decode);
+}
+
+template<typename type>
+void declareEncoders(py::module& m, const char* typestr)
+{
+	using vector = Eigen::Matrix<type, Eigen::Dynamic, 1>;
+	class PyAbstract : public SNN::Encoder::IEncoder<type> {
+	public:
+		using SNN::Encoder::IEncoder<type>::IEncoder;
+		vector encode(const Eigen::Ref<const vector>& input) override {
+			PYBIND11_OVERRIDE_PURE(
+				vector,
+				SNN::Encoder::IEncoder<type>,
+				encode,
+				input
+			);
+		}
+	};
+
+	std::string pyclass_name = std::string("IEncoder") + std::string(typestr);
+	py::class_<SNN::Encoder::IEncoder<type>, PyAbstract>(m, pyclass_name.c_str())
+		.def("encode", &SNN::Encoder::IEncoder<type>::encode);
+
+	pyclass_name = std::string("Transparent") + std::string(typestr);
+	declareEncoder<SNN::Encoder::Transparent, type>(m, pyclass_name.c_str());
+}
+
+template<typename type>
+void declareDecoders(py::module& m, const char* typestr)
+{
+	using vector = Eigen::Matrix<type, Eigen::Dynamic, 1>;
+	class PyAbstract : public SNN::Decoder::IDecoder<type> {
+	public:
+		using SNN::Decoder::IDecoder<type>::IDecoder;
+		vector decode(const Eigen::Ref<const vector>& input) override {
+			PYBIND11_OVERRIDE_PURE(
+				vector,
+				SNN::Decoder::IDecoder<type>,
+				decode,
+				input
+			);
+		}
+	};
+
+	std::string pyclass_name = std::string("IDecoder") + std::string(typestr);
+	py::class_<SNN::Decoder::IDecoder<type>, PyAbstract>(m, pyclass_name.c_str())
+		.def("decode", &SNN::Decoder::IDecoder<type>::decode);
+
+	pyclass_name = std::string("Transparent") + std::string(typestr);
+	py::class_<SNN::Decoder::Transparent<type>, SNN::Decoder::IDecoder<type>>(m, pyclass_name.c_str())
+		.def(py::init<>())
+		.def("decode", &SNN::Decoder::Transparent<type>::decode);
+
+	pyclass_name = std::string("AverageOverTime") + std::string(typestr);
+	py::class_<SNN::Decoder::AverageOverTime<type>, SNN::Decoder::IDecoder<type>>(m, pyclass_name.c_str())
+		.def(py::init<uint32_t, uint32_t>())
+		.def("decode", &SNN::Decoder::AverageOverTime<type>::decode);
+
+	pyclass_name = std::string("Binary") + std::string(typestr);
+	py::class_<SNN::Decoder::Binary<type>, SNN::Decoder::IDecoder<type>>(m, pyclass_name.c_str())
+		.def(py::init<>())
+		.def("decode", &SNN::Decoder::Binary<type>::decode);
+}
+
 PYBIND11_MODULE(snn, m) {
+	py::module encoders_module = m.def_submodule("Encoders");
+	py::module decoders_module = m.def_submodule("Decoders");
+
 	py::class_<SNN::Neuron>(m, "Neuron")
 		.def(py::init<std::string, NEURON_TYPE, NEURON_TYPE, NEURON_TYPE, NEURON_TYPE, uint32_t>())
 		.def("AddCurrent", &SNN::Neuron::AddCurrent)
 		.def("CalculatePotential", &SNN::Neuron::CalculatePotential)
+		.def_readwrite("name", &SNN::Neuron::name)
 		.def_readwrite("a", &SNN::Neuron::a)
 		.def_readwrite("b", &SNN::Neuron::b)
 		.def_readwrite("c", &SNN::Neuron::c)
@@ -67,6 +155,12 @@ PYBIND11_MODULE(snn, m) {
 		.def_readwrite("conn", &SNN::Network::Node::conn)
 		.def_readwrite("sources", &SNN::Network::Node::sources)
 		;
+
+	declareEncoders<double>(encoders_module, "d");
+	declareEncoders<float>(encoders_module, "f");
+
+	declareDecoders<double>(decoders_module, "d");
+	declareDecoders<float>(decoders_module, "f");
 
 	static py::exception<SNN::NetworkLoader::FileNotFoundError> exFileNotFoundError(m, "FileNotFoundError");
 	py::register_exception_translator([](std::exception_ptr p) {

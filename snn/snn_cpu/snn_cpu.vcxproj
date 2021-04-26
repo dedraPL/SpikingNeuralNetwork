@@ -168,6 +168,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\core\src\decoders\averageOverTime.hpp" />
+    <ClInclude Include="..\..\core\src\decoders\binary.hpp" />
+    <ClInclude Include="..\..\core\src\decoders\decoder.hpp" />
+    <ClInclude Include="..\..\core\src\decoders\transparent.hpp" />
+    <ClInclude Include="..\..\core\src\encoders\encoder.hpp" />
+    <ClInclude Include="..\..\core\src\encoders\transparent.hpp" />
     <ClInclude Include="..\..\core\src\network.hpp" />
     <ClInclude Include="..\..\core\src\networkLoader.hpp" />
     <ClInclude Include="..\..\core\src\neuron.hpp" />

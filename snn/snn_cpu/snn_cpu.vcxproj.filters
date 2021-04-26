@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -12,6 +12,12 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\encoders">
+      <UniqueIdentifier>{d494e709-96c9-4635-a5ae-312a56b81619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\decoders">
+      <UniqueIdentifier>{2b46b6d7-40d5-4129-a468-1b434361a738}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +35,24 @@
     </ClInclude>
     <ClInclude Include="..\..\core\src\network.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\encoders\encoder.hpp">
+      <Filter>Header Files\encoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\encoders\transparent.hpp">
+      <Filter>Header Files\encoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\decoder.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\transparent.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\averageOverTime.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\binary.hpp">
+      <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
