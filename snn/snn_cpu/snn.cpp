@@ -162,6 +162,7 @@ PYBIND11_MODULE(snn, m) {
 		.def_readwrite("node", &SNN::Network::Node::node, py::return_value_policy::reference)
 		.def_readwrite("conn", &SNN::Network::Node::conn)
 		.def_readwrite("sources", &SNN::Network::Node::sources)
+		.def_readonly("mode", &SNN::Network::Node::mode)
 		;
 
 	declareEncoders<double>(encoders_module, "d");
