@@ -102,7 +102,7 @@ namespace SNN {
         {
             for (auto const& nodeID : layer)
             {
-                Neuron* neuron = graph[nodeID]->node;
+                Neuron* neuron = graph[nodeID]->node.get();
                 if (graph[nodeID]->mode == Network::NodeMode::input)
                 {
                     neuron->AddCurrent(inputs[neuron->index]);
@@ -110,8 +110,8 @@ namespace SNN {
                 auto [v, u] = neuron->CalculatePotential();
                 for (auto const& synapse : graph[nodeID]->conn)
                 {
-                    Node* targetNode = graph[synapse->dest];
-                    targetNode->node->AddCurrent(synapse->CalculateCurrent(v, targetNode->node->prevV));
+                    Neuron* targetNode = graph[synapse->dest].get()->node.get();
+                    targetNode->AddCurrent(synapse->CalculateCurrent(v, targetNode->prevV));
                 }
                 if (graph[nodeID]->mode == Network::NodeMode::output)
                 {

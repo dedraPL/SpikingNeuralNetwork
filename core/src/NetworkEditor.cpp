@@ -3,18 +3,18 @@
 #include "NetworkEditor.hpp"
 
 namespace SNN {
-    Neuron* NetworkEditor::addHiddenNode(Network& network)
+    std::shared_ptr<Neuron> NetworkEditor::addHiddenNode(Network& network)
     {
         return addNode(network, 0, Network::NodeMode::hidden);
     }
 
-    Neuron* NetworkEditor::addNode(Network& network, uint32_t index, Network::NodeMode mode)
+    std::shared_ptr<Neuron> NetworkEditor::addNode(Network& network, uint32_t index, Network::NodeMode mode)
     {
         uint32_t name = network.graph.size();
         Neuron* node = new Neuron(std::to_string(name), 0.02, 0.2, -65, 8, index);
 
-        network.graph.insert({ name, new Network::Node });
-        std::vector<Synapse*> conn;
+        network.graph.insert({ name, std::make_shared<Network::Node>() });
+        std::vector<std::shared_ptr<Synapse>> conn;
         network.graph[name]->update(*node, mode, conn);
 
         if (mode == Network::NodeMode::input) 
@@ -26,14 +26,14 @@ namespace SNN {
             network.outputSize++;
         }
 
-        return node;
+        return network.graph[name]->node;
     }
 
-    Synapse* NetworkEditor::addSynapse(Network& network, Neuron& source, Neuron& destination, SYNAPSE_TYPE r)
+    std::shared_ptr<Synapse> NetworkEditor::addSynapse(Network& network, Neuron& source, Neuron& destination, SYNAPSE_TYPE r)
     {
         uint32_t dest = std::stoi(destination.name);
         uint32_t src = std::stoi(source.name);
-        Synapse* synapse = new Synapse(dest, r);
+        std::shared_ptr<Synapse> synapse = std::make_shared<Synapse>(dest, r);
         network.graph[src]->conn.push_back(synapse);
         network.graph[dest]->sources.push_back(src);
         return synapse;
@@ -52,7 +52,6 @@ namespace SNN {
                 {
                     if ((*it)->dest == dest)
                     {
-                        delete(*it);
                         network.graph[src]->conn.erase(it);
                         break;
                     }
@@ -68,7 +67,6 @@ namespace SNN {
             {
                 uint32_t dest = std::stoi(network.graph[(*output)->dest]->node->name);
 
-                delete(*output);
                 output = node.conn.erase(output);
 
                 for (auto it = std::begin(network.graph[dest]->sources); it != std::end(network.graph[dest]->sources); ++it)
@@ -84,13 +82,12 @@ namespace SNN {
 
         for (auto it = std::begin(network.graph); it != std::end(network.graph); ++it)
         {
-            if (it->second == &node)
+            if (it->second.get() == &node)
             {
                 network.graph.erase(it);
                 break;
             }
         }
-        delete(&node);
     }
 
     void NetworkEditor::removeSynapse(Network& network, Neuron& source, Neuron& destination)
@@ -102,7 +99,6 @@ namespace SNN {
         {
             if ((*it)->dest == dest)
             {
-                delete(*it);
                 network.graph[src]->conn.erase(it);
                 break;
             }

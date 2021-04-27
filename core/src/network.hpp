@@ -18,13 +18,13 @@ namespace SNN {
         enum class NodeMode { input, output, hidden };
         
         struct Node {
-            Neuron* node;
+            std::shared_ptr<Neuron> node;
             NodeMode mode;
-            std::vector<Synapse*> conn;
+            std::vector<std::shared_ptr<Synapse>> conn;
             std::vector<uint32_t> sources;
 
-            void update(Neuron& node, NodeMode mode, std::vector<Synapse*> conn) {
-                this->node = &node;
+            void update(Neuron& node, NodeMode mode, std::vector<std::shared_ptr<Synapse>> conn) {
+                this->node = std::shared_ptr<Neuron>(&node);
                 this->mode = mode;
                 this->conn = conn;
             }
@@ -33,16 +33,11 @@ namespace SNN {
 
             ~Node()
             {
-                for (auto it = std::begin(conn); it != std::end(conn); ++it)
-                {
-                    delete(*it);
-                }
-                delete(node);
             }
 
-            Neuron* getNode() { return node; }
+            std::shared_ptr<Neuron> getNode() { return node; }
             NodeMode getMode() { return mode; }
-            std::vector<Synapse*> getConn() { return conn; }
+            std::vector<std::shared_ptr<Synapse>> getConn() { return conn; }
             std::vector<uint32_t> getSources() { return sources; }
         };
 
@@ -64,8 +59,8 @@ namespace SNN {
         Eigen::VectorXd rund(const Eigen::Ref<const Eigen::VectorXd>& inputs);
         Eigen::VectorXf runf(const Eigen::Ref<const Eigen::VectorXf>& inputs);
 
-        std::map<uint32_t, Network::Node*> graph;
-        std::map<uint32_t, Network::Node*>* getGraph() { return &graph; };
+        std::map<uint32_t, std::shared_ptr<Network::Node>> graph;
+        std::map<uint32_t, std::shared_ptr<Network::Node>>* getGraph() { return &graph; };
         std::vector<uint32_t>* getInputsIdx() { return &inputsIdx; };
         std::vector<uint32_t>* getOutputsIdx() { return &outputsIdx; };
         uint32_t inputSize = 0, outputSize = 0;
@@ -88,7 +83,7 @@ namespace SNN {
         {
             for (auto const& nodeID : layer)
             {
-                Neuron* neuron = graph[nodeID]->node;
+                Neuron* neuron = graph[nodeID]->node.get();
                 if (graph[nodeID]->mode == Network::NodeMode::input)
                 {
                     neuron->AddCurrent(inputs[neuron->index]);
@@ -96,8 +91,8 @@ namespace SNN {
                 auto [v, u] = neuron->CalculatePotential();
                 for (auto const& synapse : graph[nodeID]->conn)
                 {
-                    Node* targetNode = graph[synapse->dest];
-                    targetNode->node->AddCurrent(synapse->CalculateCurrent(v, targetNode->node->prevV));
+                    Neuron* targetNode = graph[synapse->dest].get()->node.get();
+                    targetNode->AddCurrent(synapse->CalculateCurrent(v, targetNode->prevV));
                 }
                 if (graph[nodeID]->mode == Network::NodeMode::output)
                 {

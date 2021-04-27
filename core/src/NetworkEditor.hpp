@@ -6,11 +6,11 @@
 namespace SNN {
 	class NetworkEditor {
 	public:
-		static Neuron* addHiddenNode(Network& network);
+		static std::shared_ptr<Neuron> addHiddenNode(Network& network);
 
-		static Neuron* addNode(Network& network, uint32_t index, Network::NodeMode mode);
+		static std::shared_ptr<Neuron> addNode(Network& network, uint32_t index, Network::NodeMode mode);
 
-		static Synapse* addSynapse(Network& network, Neuron& source, Neuron& destination, SYNAPSE_TYPE r);
+		static std::shared_ptr<Synapse> addSynapse(Network& network, Neuron& source, Neuron& destination, SYNAPSE_TYPE r);
 
 		static void removeNode(Network& network, Network::Node& node);
 

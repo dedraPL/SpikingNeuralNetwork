@@ -147,7 +147,7 @@ namespace SNN
             tmpConnectionsPointers.push_back(tmpConnections2DArray.size());
             for (auto const& source : node.second->sources)
             {
-                auto tmp = std::find_if(graph[source]->conn.begin(), graph[source]->conn.end(), [&](const Synapse* s) { return s->dest == node.first; });
+                auto tmp = std::find_if(graph[source]->conn.begin(), graph[source]->conn.end(), [&](const std::shared_ptr<Synapse> s) { return s->dest == node.first; });
                 tmpR.push_back((*tmp)->r);
                 tmpConnections2DArray.push_back(source);
             }
