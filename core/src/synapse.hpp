@@ -2,15 +2,18 @@
 
 #define SYNAPSE_TYPE float
 
-#include <string>
+#include "node.hpp"
 
 namespace SNN {
+    class Node;
+
     class Synapse {
     public:
         SYNAPSE_TYPE r;
-        uint32_t dest;
+        Node* src;
+        Node* dest;
         
-        Synapse(uint32_t dest, SYNAPSE_TYPE r);
+        Synapse(Node* src, Node* dest, SYNAPSE_TYPE r);
 
         SYNAPSE_TYPE CalculateCurrent(SYNAPSE_TYPE v1, SYNAPSE_TYPE v2);
         void ChangeResistance(SYNAPSE_TYPE res);

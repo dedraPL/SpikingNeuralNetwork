@@ -35,6 +35,9 @@
     <ClCompile Include="..\..\core\src\NetworkEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\core\src\node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\core\src\network.hpp">
@@ -77,6 +80,9 @@
       <Filter>Header Files\encoders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\core\src\NetworkEditor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

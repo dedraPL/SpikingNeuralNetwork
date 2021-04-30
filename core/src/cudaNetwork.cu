@@ -147,13 +147,13 @@ namespace SNN
             tmpConnectionsPointers.push_back(tmpConnections2DArray.size());
             for (auto const& source : node.second->sources)
             {
-                auto tmp = std::find_if(graph[source]->conn.begin(), graph[source]->conn.end(), [&](const std::shared_ptr<Synapse> s) { return s->dest == node.first; });
+                auto tmp = std::find_if(graph[source->dest->name]->conn.begin(), graph[source->dest->name]->conn.end(), [&](const std::shared_ptr<Synapse> s) { return s->dest->index == node.first; });
                 tmpR.push_back((*tmp)->r);
-                tmpConnections2DArray.push_back(source);
+                tmpConnections2DArray.push_back(source->dest->name);
             }
-            if (node.second->mode == Network::NodeMode::output)
+            if (node.second->mode == Node::NodeMode::output)
             {
-                outputIndexes[node.second->node->index] = tmpV.size() - 1;
+                outputIndexes[node.second->index] = tmpV.size() - 1;
             }
         }
 

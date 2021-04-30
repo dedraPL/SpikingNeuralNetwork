@@ -2,9 +2,10 @@
 
 namespace SNN
 { 
-    Synapse::Synapse(uint32_t dest, SYNAPSE_TYPE r) {
+    Synapse::Synapse(Node* src, Node* dest, SYNAPSE_TYPE r) {
         this->r = r;
         this->dest = dest;
+        this->src = src;
     }
 
     SYNAPSE_TYPE Synapse::CalculateCurrent(SYNAPSE_TYPE v1, SYNAPSE_TYPE v2) {

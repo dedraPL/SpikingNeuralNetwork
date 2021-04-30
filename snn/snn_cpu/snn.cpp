@@ -5,6 +5,7 @@
 #include <pybind11/eigen.h>
 #include <Eigen/Dense>
 
+#include "node.hpp"
 #include "neuron.hpp"
 #include "synapse.hpp"
 #include "networkLoader.hpp"
@@ -101,11 +102,27 @@ PYBIND11_MODULE(snn, m) {
 	py::module encoders_module = m.def_submodule("Encoders");
 	py::module decoders_module = m.def_submodule("Decoders");
 
+	auto Node = py::class_<SNN::Node, std::shared_ptr<SNN::Node>>(m, "Node")
+		.def(py::init<uint32_t, uint32_t>())
+		.def_readwrite("node", &SNN::Node::node, py::return_value_policy::reference)
+		.def_readwrite("conn", &SNN::Node::conn)
+		.def_readwrite("sources", &SNN::Node::sources)
+		.def_readonly("mode", &SNN::Node::mode)
+		.def_readwrite("name", &SNN::Node::name)
+		.def_readwrite("index", &SNN::Node::index)
+		;
+
+	py::enum_<SNN::Node::NodeMode>(Node, "NodeMode")
+		.value("input", SNN::Node::NodeMode::input)
+		.value("hidden", SNN::Node::NodeMode::hidden)
+		.value("output", SNN::Node::NodeMode::output)
+		.export_values()
+		;
+
 	py::class_<SNN::Neuron, std::shared_ptr<SNN::Neuron>>(m, "Neuron")
-		.def(py::init<std::string, NEURON_TYPE, NEURON_TYPE, NEURON_TYPE, NEURON_TYPE, uint32_t>())
+		.def(py::init<NEURON_TYPE, NEURON_TYPE, NEURON_TYPE, NEURON_TYPE>())
 		.def("AddCurrent", &SNN::Neuron::AddCurrent)
 		.def("CalculatePotential", &SNN::Neuron::CalculatePotential)
-		.def_readwrite("name", &SNN::Neuron::name)
 		.def_readwrite("a", &SNN::Neuron::a)
 		.def_readwrite("b", &SNN::Neuron::b)
 		.def_readwrite("c", &SNN::Neuron::c)
@@ -116,11 +133,12 @@ PYBIND11_MODULE(snn, m) {
 		;
 
 	py::class_<SNN::Synapse, std::shared_ptr<SNN::Synapse>>(m, "Synapse")
-		.def(py::init<uint32_t, SYNAPSE_TYPE>())
+		.def(py::init<SNN::Node*, SNN::Node*, SYNAPSE_TYPE>())
 		.def("CalculateCurrent", &SNN::Synapse::CalculateCurrent)
 		.def("ChangeResistance", &SNN::Synapse::ChangeResistance)
 		.def_readwrite("r", &SNN::Synapse::r)
 		.def_readwrite("dest", &SNN::Synapse::dest)
+		.def_readwrite("src", &SNN::Synapse::src)
 		;
 
 	py::class_<SNN::NetworkLoader>(m, "NetworkLoader")
@@ -138,31 +156,16 @@ PYBIND11_MODULE(snn, m) {
 		.def_static("removeSynapse", &SNN::NetworkEditor::removeSynapse)
 		;
 
-	py::class_<SNN::Network> Network(m, "Network");
-	Network.def(py::init<>());
-	Network.def("BFSSort", &SNN::Network::BFSSort);
-	//.def("run", &SNN::Network::run)
-	Network.def("run", static_cast<std::vector<double>(SNN::Network::*)(std::vector<double>)>(&SNN::Network::run));
-	Network.def("rund", &SNN::Network::rund);
-	Network.def("runf", &SNN::Network::runf);
-	Network.def("getGraph", &SNN::Network::getGraph, py::return_value_policy::reference);
-	Network.def_readwrite("graph", &SNN::Network::graph, py::return_value_policy::reference);
-	Network.def_readwrite("graphOrder", &SNN::Network::graphOrder);
-
-	py::enum_<SNN::Network::NodeMode>(Network, "NodeMode")
-		.value("input", SNN::Network::NodeMode::input)
-		.value("hidden", SNN::Network::NodeMode::hidden)
-		.value("output", SNN::Network::NodeMode::output)
-		.export_values()
-		;
-
-	py::class_<SNN::Network::Node, std::shared_ptr<SNN::Network::Node>>(m, "Node")
+	py::class_<SNN::Network>(m, "Network")
 		.def(py::init<>())
-		.def("update", &SNN::Network::Node::update)
-		.def_readwrite("node", &SNN::Network::Node::node, py::return_value_policy::reference)
-		.def_readwrite("conn", &SNN::Network::Node::conn)
-		.def_readwrite("sources", &SNN::Network::Node::sources)
-		.def_readonly("mode", &SNN::Network::Node::mode)
+		.def("BFSSort", &SNN::Network::BFSSort)
+		//.def("run", &SNN::Network::run)
+		.def("run", static_cast<std::vector<double>(SNN::Network::*)(std::vector<double>)>(&SNN::Network::run))
+		.def("rund", &SNN::Network::rund)
+		.def("runf", &SNN::Network::runf)
+		.def("getGraph", &SNN::Network::getGraph, py::return_value_policy::reference)
+		.def_readwrite("graph", &SNN::Network::graph, py::return_value_policy::reference)
+		.def_readwrite("graphOrder", &SNN::Network::graphOrder)
 		;
 
 	declareEncoders<double>(encoders_module, "d");

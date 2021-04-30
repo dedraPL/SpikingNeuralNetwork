@@ -178,6 +178,7 @@
     <ClInclude Include="..\..\core\src\NetworkEditor.hpp" />
     <ClInclude Include="..\..\core\src\networkLoader.hpp" />
     <ClInclude Include="..\..\core\src\neuron.hpp" />
+    <ClInclude Include="..\..\core\src\node.hpp" />
     <ClInclude Include="..\..\core\src\synapse.hpp" />
     <ClInclude Include="framework.h" />
   </ItemGroup>
@@ -186,6 +187,7 @@
     <ClCompile Include="..\..\core\src\NetworkEditor.cpp" />
     <ClCompile Include="..\..\core\src\networkLoader.cpp" />
     <ClCompile Include="..\..\core\src\neuron.cpp" />
+    <ClCompile Include="..\..\core\src\node.cpp" />
     <ClCompile Include="..\..\core\src\synapse.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="snn.cpp" />

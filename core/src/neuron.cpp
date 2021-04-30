@@ -1,14 +1,12 @@
 #include "neuron.hpp"
 
 namespace SNN { 
-    Neuron::Neuron(std::string name, NEURON_TYPE a, NEURON_TYPE b, NEURON_TYPE c, NEURON_TYPE d, uint32_t index)
+    Neuron::Neuron(NEURON_TYPE a, NEURON_TYPE b, NEURON_TYPE c, NEURON_TYPE d)
     {
-        this->name = name;
         this->a = a;
         this->b = b;
         this->c = c;
         this->d = d;
-        this->index = index;
 
         this->prevV = -70;
         this->prevU = -14;

@@ -43,15 +43,15 @@ namespace SNN {
             network.inputSize = inputs.size();
             network.outputSize = outputs.size();
 
-            network.graph = map<uint32_t, std::shared_ptr<Network::Node>>();
+            network.graph = map<uint32_t, std::shared_ptr<Node>>();
             for(uint32_t x = 0; x != matrix.size(); x++) 
             {
-                Network::NodeMode mode;
+                Node::NodeMode mode;
                 uint32_t index = 0;
 
                 if(find(inputs.begin(), inputs.end(), x) != inputs.end()) 
                 {
-                    mode = Network::NodeMode::input;
+                    mode = Node::NodeMode::input;
                     index = std::distance(inputs.begin(), std::find(inputs.begin(), inputs.end(), x));
                     //std::cout << "i ";
                     //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
@@ -59,7 +59,7 @@ namespace SNN {
                 }
                 else if(find(outputs.begin(), outputs.end(), x) != outputs.end()) 
                 {
-                    mode = Network::NodeMode::output;
+                    mode = Node::NodeMode::output;
                     index = std::distance(outputs.begin(), std::find(outputs.begin(), outputs.end(), x));
                     //cout << "o ";
                     //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
@@ -67,34 +67,46 @@ namespace SNN {
                 }
                 else 
                 {
-                    mode = Network::NodeMode::hidden;
+                    mode = Node::NodeMode::hidden;
                     //std::cout << "h ";
                     //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
                     //std::cout << '\n';
                 }
 
-                Neuron* node = new Neuron(to_string(x), 0.02, 0.2, -65, 8, index);
-                std::vector<std::shared_ptr<Synapse>> conn;
+                Node* node;
+                auto it = network.graph.find(x);
+                if (it == network.graph.end() || (*it).second->node->a == 0)
+                {
+                    if (it == network.graph.end())
+                        node = network.graph.insert(std::make_pair(x, std::make_shared<Node>(x, index))).first->second.get();
+                    else
+                        node = (*it).second.get();
+
+                    node->node->a = 0.02;
+                    node->node->b = 0.2;
+                    node->node->c = -65;
+                    node->node->d = 8;
+                    node->mode = mode;
+                }
+                else
+                {
+                    node = (*it).second.get();
+                }
 
                 for(uint32_t y = 0; y != matrix[x].size(); y++) 
                 {
                     if(matrix[x][y] != 0) 
                     {
-                        conn.push_back(std::make_shared<Synapse>(y, matrix[x][y]));
                         auto it = network.graph.find(y);
                         if(it == network.graph.end()) 
                         {
-                            network.graph.insert(std::make_pair(y, std::make_shared<Network::Node>()));
+                            network.graph.insert(std::make_pair(y, std::make_shared<Node>(y, 0)));
+                            it = network.graph.find(y);
                         }
-                        network.graph[y]->sources.push_back(x);
+                        node->conn.push_back(std::make_shared<Synapse>(node, it->second.get(), matrix[x][y]));
+                        network.graph[y]->sources.push_back(node->conn.back());
                     }
                 }
-                auto it = network.graph.find(x);
-                if(it == network.graph.end()) 
-                {
-                    network.graph.insert(std::make_pair(x, std::make_shared<Network::Node>()));
-                }
-                network.graph[x]->update(*node, mode, conn);
             }
         }
         else 
@@ -134,14 +146,14 @@ namespace SNN {
             
             for (auto const& val : *network.getInputsIdx())
             {
-                file << val;
+                file << val->name;
                 if (&val != &network.getInputsIdx()->back())
                     file << " ";
             }
             file << std::endl;
             for (auto const& val : *network.getOutputsIdx())
             {
-                file << val;
+                file << val->name;
                 if (&val != &network.getOutputsIdx()->back())
                     file << " ";
             }
@@ -153,12 +165,26 @@ namespace SNN {
                 std::vector<std::shared_ptr<Synapse>> conn = val->getConn();
                 std::sort(std::begin(conn), std::end(conn), [](std::shared_ptr<Synapse> a, std::shared_ptr<Synapse> b)
                     {
-                        return a->dest < b->dest;
+                        return a->dest->name < b->dest->name;
                     });
                 std::vector<std::shared_ptr<Synapse>>::iterator conn_val = conn.begin();
-                for (uint32_t i = 0; i < size; i++)
+                
+                for (auto it = network.graph.begin(); it != network.graph.end(); ++it)
                 {
-                    if (conn.size() > 0 && (*conn_val)->dest == i)
+                    if (conn.size() > 0 && (*conn_val)->dest == it->second.get())
+                    {
+                        file << (*conn_val)->r;
+                        if (conn_val + 1 != conn.end())
+                            ++conn_val;
+                    }
+                    else
+                        file << 0;
+                    if (it != network.graph.end()--)
+                        file << ' ';
+                }
+                /*for (uint32_t i = 0; i < size; i++)
+                {
+                    if (conn.size() > 0 && (*conn_val)->dest == network.graph[i].get())
                     {
                         file << (*conn_val)->r;
                         if (conn_val + 1 != conn.end())
@@ -168,7 +194,7 @@ namespace SNN {
                         file << 0;
                     if (i + 1 < size)
                         file << ' ';
-                }
+                }*/
                 file << std::endl;
             }
             file.close();
@@ -194,13 +220,22 @@ namespace SNN {
             io_size = network.getOutputsIdx()->size();
             file.write(reinterpret_cast<const char*>(&io_size), sizeof(io_size));
 
-            std::vector<uint32_t>* inputs;
-            std::vector<uint32_t>* outputs;
+            std::vector<Node*>* inputs;
+            std::vector<Node*>* outputs;
             inputs = network.getInputsIdx();
             outputs = network.getOutputsIdx();
 
-            file.write((char*)&inputs[0], inputs->size() * sizeof(uint32_t));
-            file.write((char*)&outputs[0], outputs->size() * sizeof(uint32_t));
+            for (auto const& val : *network.getInputsIdx())
+            {
+                file.write((char*)&val->name, sizeof(uint32_t));
+            }
+            for (auto const& val : *network.getOutputsIdx())
+            {
+                file.write((char*)&val->name, sizeof(uint32_t));
+            }
+
+            //file.write((char*)&inputs[0], inputs->size() * sizeof(uint32_t));
+            //file.write((char*)&outputs[0], outputs->size() * sizeof(uint32_t));
 
             if (config & 1)
                 processAndSaveBinFile<float>(&file, &network);
@@ -239,15 +274,15 @@ namespace SNN {
         network->inputSize = inputs.size();
         network->outputSize = outputs.size();
 
-        network->graph = map<uint32_t, std::shared_ptr<Network::Node>>();
+        network->graph = map<uint32_t, std::shared_ptr<Node>>();
         for (uint32_t x = 0; x != matrix.size(); x++)
         {
-            Network::NodeMode mode;
+            Node::NodeMode mode;
             uint32_t index = 0;
 
             if (find(inputs.begin(), inputs.end(), x) != inputs.end())
             {
-                mode = Network::NodeMode::input;
+                mode = Node::NodeMode::input;
                 index = std::distance(inputs.begin(), std::find(inputs.begin(), inputs.end(), x));
                 //std::cout << "i ";
                 //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
@@ -255,7 +290,7 @@ namespace SNN {
             }
             else if (find(outputs.begin(), outputs.end(), x) != outputs.end())
             {
-                mode = Network::NodeMode::output;
+                mode = Node::NodeMode::output;
                 index = std::distance(outputs.begin(), std::find(outputs.begin(), outputs.end(), x));
                 //cout << "o ";
                 //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
@@ -263,25 +298,27 @@ namespace SNN {
             }
             else
             {
-                mode = Network::NodeMode::hidden;
+                mode = Node::NodeMode::hidden;
                 //std::cout << "h ";
                 //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
                 //std::cout << '\n';
             }
 
-            Neuron* node = new Neuron(to_string(x), 0.02, 0.2, -65, 8, index);
+            /*Neuron* node = new Neuron(to_string(x), 0.02, 0.2, -65, 8, index);
             std::vector<std::shared_ptr<Synapse>> conn;
 
             for (uint32_t y = 0; y != matrix[x].size(); y++)
             {
                 if (matrix[x][y] != 0)
                 {
-                    conn.push_back(std::make_shared<Synapse>(y, matrix[x][y]));
+                    
                     auto it = network->graph.find(y);
                     if (it == network->graph.end())
                     {
                         network->graph.insert(std::make_pair(y, std::make_shared<Network::Node>()));
+                        it = network->graph.find(y);
                     }
+                    conn.push_back(std::make_shared<Synapse>(*it->second->node.get(), matrix[x][y]));
                     network->graph[y]->sources.push_back(x);
                 }
             }
@@ -290,7 +327,41 @@ namespace SNN {
             {
                 network->graph.insert(std::make_pair(x, std::make_shared<Network::Node>()));
             }
-            network->graph[x]->update(*node, mode, conn);
+            network->graph[x]->update(*node, mode, conn);*/
+            Node* node;
+            auto it = network->graph.find(x);
+            if (it == network->graph.end() || (*it).second->node->a == 0)
+            {
+                if (it == network->graph.end())
+                    node = network->graph.insert(std::make_pair(x, std::make_shared<Node>(x, index))).first->second.get();
+                else
+                    node = (*it).second.get();
+
+                node->node->a = 0.02;
+                node->node->b = 0.2;
+                node->node->c = -65;
+                node->node->d = 8;
+                node->mode = mode;
+            }
+            else
+            {
+                node = (*it).second.get();
+            }
+
+            for (uint32_t y = 0; y != matrix[x].size(); y++)
+            {
+                if (matrix[x][y] != 0)
+                {
+                    auto it = network->graph.find(y);
+                    if (it == network->graph.end())
+                    {
+                        network->graph.insert(std::make_pair(y, std::make_shared<Node>(y, 0)));
+                        it = network->graph.find(y);
+                    }
+                    node->conn.push_back(std::make_shared<Synapse>(node, it->second.get(), matrix[x][y]));
+                    network->graph[y]->sources.push_back(node->conn.back());
+                }
+            }
         }
     }
 
@@ -304,12 +375,12 @@ namespace SNN {
             std::vector<std::shared_ptr<Synapse>> conn = val->getConn();
             std::sort(conn.begin(), conn.end(), [](const std::shared_ptr<Synapse>& a, const std::shared_ptr<Synapse>& b)
                 {
-                    return a->dest < b->dest;
+                    return a->dest->name < b->dest->name;
                 });
             std::vector<std::shared_ptr<Synapse>>::iterator conn_val = conn.begin();
             for (uint32_t i = 0; i < size; i++)
             {
-                if (conn.size() > 0 && (*conn_val)->dest == i)
+                if (conn.size() > 0 && (*conn_val)->dest->name == i)
                 {
                     buffer[i] = (*conn_val)->r;
                     if (conn_val + 1 != conn.end())

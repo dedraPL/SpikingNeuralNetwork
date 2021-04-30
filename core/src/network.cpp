@@ -5,25 +5,41 @@ namespace SNN {
     {
     }
 
+    Network::~Network()
+    {
+    }
+
     std::vector<std::vector<uint32_t>>* Network::BFSSort()
     {
         std::list<uint32_t> queue;
         std::vector<std::pair<uint32_t, uint32_t>> order;
         order.reserve(graph.size());
 
-        for (auto const& [key, val] : this->graph)
+        inputsIdx.clear();
+        outputsIdx.clear();
+        uint32_t name = 0;
+        std::map<uint32_t, std::shared_ptr<Node>> tmpMap;
+        for (auto it = this->graph.begin(); it != this->graph.end();)
         {
-            if (val->mode == NodeMode::input)
+            auto tmp = this->graph.extract(it++);
+            tmp.key() = name;
+            auto tmp2 = tmpMap.insert(tmpMap.end(), std::move(tmp));
+            tmp2->second->name = name;
+
+            if ((*tmp2).second->mode == Node::NodeMode::input)
             {
-                queue.push_back(key);
-                order.push_back({ 0, key });
-                inputsIdx.push_back(key);
+                queue.push_back(name);
+                order.push_back({ 0, name });
+                inputsIdx.push_back((*tmp2).second.get());
             }
-            else if (val->mode == NodeMode::output)
+            else if ((*tmp2).second->mode == Node::NodeMode::output)
             {
-                outputsIdx.push_back(key);
+                outputsIdx.push_back((*tmp2).second.get());
             }
+
+            name++;
         }
+        tmpMap.swap(this->graph);
 
         uint32_t node;
         uint32_t level = 0;
@@ -47,7 +63,7 @@ namespace SNN {
                 bool test = false;
                 for (auto const& [lvl, nodeIndex] : order)
                 {
-                    if (nodeIndex == n->dest)
+                    if (nodeIndex == n->dest->name)
                     {
                         r = lvl;
                         test = true;
@@ -56,8 +72,8 @@ namespace SNN {
                 }
                 if (test == false)
                 {
-                    order.push_back({ level + 1, n->dest });
-                    queue.push_back(n->dest);
+                    order.push_back({ level + 1, n->dest->name });
+                    queue.push_back(n->dest->name);
                 }
                 else if (r > level + 1)
                 {
@@ -102,7 +118,7 @@ namespace SNN {
         {
             for (auto const& nodeID : layer)
             {
-                Neuron* neuron = graph[nodeID]->node.get();
+                /*Neuron* neuron = graph[nodeID]->node.get();
                 if (graph[nodeID]->mode == Network::NodeMode::input)
                 {
                     neuron->AddCurrent(inputs[neuron->index]);
@@ -110,12 +126,27 @@ namespace SNN {
                 auto [v, u] = neuron->CalculatePotential();
                 for (auto const& synapse : graph[nodeID]->conn)
                 {
-                    Neuron* targetNode = graph[synapse->dest].get()->node.get();
+                    Neuron* targetNode = graph[synapse->dest->index].get()->node.get();
                     targetNode->AddCurrent(synapse->CalculateCurrent(v, targetNode->prevV));
                 }
                 if (graph[nodeID]->mode == Network::NodeMode::output)
                 {
                     output[neuron->index] = v;
+                }*/
+                Node* node = graph[nodeID].get();
+                if (node->mode == Node::NodeMode::input)
+                {
+                    node->node->AddCurrent(inputs[node->index]);
+                }
+                auto [v, u] = node->node->CalculatePotential();
+                for (auto const& synapse : node->conn)
+                {
+                    Neuron* targetNode = synapse->dest->node.get();
+                    targetNode->AddCurrent(synapse->CalculateCurrent(v, targetNode->prevV));
+                }
+                if (node->mode == Node::NodeMode::output)
+                {
+                    output[node->index] = v;
                 }
             }
         }

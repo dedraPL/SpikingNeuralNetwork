@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "network.hpp"
+#include "node.hpp"
 
 namespace SNN {
 	class CUDANetwork : public Network{
