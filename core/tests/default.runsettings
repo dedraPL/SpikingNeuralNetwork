@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>4</MaxCpuCount>
+    <ResultsDirectory>.</ResultsDirectory>
+    <TestSessionTimeout>60000</TestSessionTimeout>
+  </RunConfiguration>
+  
+  <Catch2Adapter>
+    <FilenameFilter>tests</FilenameFilter>
+    <WorkingDirectoryRoot>TestRun</WorkingDirectoryRoot>
+    <WorkingDirectory>.</WorkingDirectory>
+  </Catch2Adapter>
+</RunSettings>

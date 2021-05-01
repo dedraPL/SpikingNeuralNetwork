@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\decoders">
+      <UniqueIdentifier>{03431dc6-84fb-4cdf-a13f-45b597b3344c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\encoders">
+      <UniqueIdentifier>{f7303dc4-8cf5-4210-bc3f-d1b643da7597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{18c1239c-ee63-4f10-8f00-5dc5525d918e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\core\tests\catch\catch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\network.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\NetworkEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\networkLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\neuron.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\src\synapse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\tests\UT_NetworkLoader.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\core\tests\catch\catch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\network.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\NetworkEditor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\networkLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\neuron.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\node.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\synapse.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\averageOverTime.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\binary.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\decoder.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\transparent.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\encoders\averageOverTime.hpp">
+      <Filter>Header Files\encoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\encoders\encoder.hpp">
+      <Filter>Header Files\encoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\src\encoders\transparent.hpp">
+      <Filter>Header Files\encoders</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\core\tests\default.runsettings" />
+  </ItemGroup>
+</Project>
