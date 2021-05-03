@@ -59,6 +59,7 @@ where all edges have weight = 1
 # KNOWN ISSUES
 
 * loading txt file with loadBin results with huge memory consumption
+* inputs and outputs index consistency cannot be guaranteed after removing input or output Node
 
 # TODO
 - [x] working CPU single threaded version
