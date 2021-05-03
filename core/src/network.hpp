@@ -50,7 +50,7 @@ namespace SNN {
     template<typename T>
     inline T Network::run(const Eigen::Ref<const T>& inputs)
     {
-        if (inputs.rows() != inputSize && inputs.cols() != 1)
+        if (inputs.rows() != inputSize || inputs.cols() != 1)
             throw Network::InputSizeError(inputSize);
 
         T output = T(outputSize);
