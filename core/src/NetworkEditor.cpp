@@ -43,78 +43,78 @@ namespace SNN {
 
     void NetworkEditor::removeNode(Network& network, Node& node)
     {
+        if (network.graph.find(node.name) != network.graph.end())
         {
-            auto input = std::begin(node.sources);
-            //uint32_t dest = node.name;
-            while (input != std::end(node.sources))
             {
-                /*uint32_t src = (*input)->src->name;
+                auto input = std::begin(node.sources);
+                //uint32_t dest = node.name;
+                while (input != std::end(node.sources))
+                {
+                    /*uint32_t src = (*input)->src->name;
 
-                for (auto it = std::begin(network.graph[src]->conn); it != std::end(network.graph[src]->conn); ++it)
-                {
-                    if ((*it)->dest == node.node.get())
+                    for (auto it = std::begin(network.graph[src]->conn); it != std::end(network.graph[src]->conn); ++it)
                     {
-                        network.graph[src]->conn.erase(it);
-                        break;
-                    }
-                }*/
-                for (auto it = std::begin((*input)->src->conn); it != std::end((*input)->src->conn); ++it)
-                {
-                    if ((*it)->dest == &node)
+                        if ((*it)->dest == node.node.get())
+                        {
+                            network.graph[src]->conn.erase(it);
+                            break;
+                        }
+                    }*/
+                    for (auto it = std::begin((*input)->src->conn); it != std::end((*input)->src->conn); ++it)
                     {
-                        (*input)->src->conn.erase(it);
-                        break;
+                        if ((*it)->dest == &node)
+                        {
+                            (*input)->src->conn.erase(it);
+                            break;
+                        }
                     }
+                    input = node.sources.erase(input);
                 }
-                input = node.sources.erase(input);
             }
-        }
 
-        {
-            auto output = std::begin(node.conn);
-            uint32_t src = node.name;
-            while (output != std::end(node.conn))
             {
-                /*uint32_t dest = (*output)->dest->name;
-
-                output = node.conn.erase(output);
-
-                for (auto it = std::begin(network.graph[dest]->sources); it != std::end(network.graph[dest]->sources); ++it)
+                auto output = std::begin(node.conn);
+                uint32_t src = node.name;
+                while (output != std::end(node.conn))
                 {
-                    if ((*it)->src == node.node.get())
+                    /*uint32_t dest = (*output)->dest->name;
+
+                    output = node.conn.erase(output);
+
+                    for (auto it = std::begin(network.graph[dest]->sources); it != std::end(network.graph[dest]->sources); ++it)
                     {
-                        network.graph[dest]->sources.erase(it);
-                        break;
-                    }
-                }*/
-                
-                for (auto it = std::begin((*output)->src->sources); it != std::end((*output)->src->sources); ++it)
-                {
-                    if ((*it)->src == &node)
+                        if ((*it)->src == node.node.get())
+                        {
+                            network.graph[dest]->sources.erase(it);
+                            break;
+                        }
+                    }*/
+
+                    for (auto it = std::begin((*output)->src->sources); it != std::end((*output)->src->sources); ++it)
                     {
-                        (*output)->src->sources.erase(it);
-                        break;
+                        if ((*it)->src == &node)
+                        {
+                            (*output)->src->sources.erase(it);
+                            break;
+                        }
                     }
+                    output = node.conn.erase(output);
                 }
-                output = node.conn.erase(output);
             }
-        }
 
-        for (auto it = std::begin(network.graph); it != std::end(network.graph); ++it)
-        {
-            if (it->second.get() == &node)
+            for (auto it = std::begin(network.graph); it != std::end(network.graph); ++it)
             {
-                network.graph.erase(it);
-                break;
+                if (it->second.get() == &node)
+                {
+                    network.graph.erase(it);
+                    break;
+                }
             }
         }
     }
 
     void NetworkEditor::removeSynapse(Network& network, Node& source, Node& destination)
     {
-        uint32_t dest = destination.name;
-        uint32_t src = source.name;
-        
         for (auto it = std::begin(source.conn); it != std::end(source.conn); ++it)
         {
             if ((*it)->dest == &destination)
