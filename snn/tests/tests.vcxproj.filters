@@ -47,6 +47,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\core\tests\UT_Network.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\core\tests\catch\catch.hpp">
