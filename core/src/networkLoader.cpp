@@ -87,6 +87,7 @@ namespace SNN {
                     node->node->c = -65;
                     node->node->d = 8;
                     node->mode = mode;
+                    node->index = index;
                 }
                 else
                 {
