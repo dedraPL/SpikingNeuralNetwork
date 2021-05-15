@@ -22,16 +22,18 @@ namespace SNN {
         uint32_t netSize = 0;
         for (auto const& input : inputIndexes)
         {
-            NetworkEditor::addNode(*network, input.second, Node::NodeMode::input);
+            auto node = NetworkEditor::addNode(*network, input.second, Node::NodeMode::input);
             netSize++;
             REQUIRE(network->graph.size() == netSize);
+            REQUIRE(node->mode == Node::NodeMode::input);
         }
 
         for (auto const& input : outputIndexes)
         {
-            NetworkEditor::addNode(*network, input.second, Node::NodeMode::output);
+            auto node = NetworkEditor::addNode(*network, input.second, Node::NodeMode::output);
             netSize++;
             REQUIRE(network->graph.size() == netSize);
+            REQUIRE(node->mode == Node::NodeMode::output);
         }
 
         REQUIRE(network->inputSize == 3);
