@@ -152,6 +152,7 @@
     <ClCompile Include="..\..\core\src\node.cpp" />
     <ClCompile Include="..\..\core\src\synapse.cpp" />
     <ClCompile Include="..\..\core\tests\catch\catch.cpp" />
+    <ClCompile Include="..\..\core\tests\UT_Decoder.cpp" />
     <ClCompile Include="..\..\core\tests\UT_Network.cpp" />
     <ClCompile Include="..\..\core\tests\UT_NetworkEditor.cpp" />
     <ClCompile Include="..\..\core\tests\UT_NetworkLoader.cpp" />

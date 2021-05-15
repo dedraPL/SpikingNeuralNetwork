@@ -53,6 +53,9 @@
     <ClCompile Include="..\..\core\tests\UT_NetworkEditor.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\core\tests\UT_Decoder.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\core\tests\catch\catch.hpp">
