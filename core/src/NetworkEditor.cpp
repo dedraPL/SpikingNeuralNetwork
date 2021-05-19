@@ -12,6 +12,11 @@ namespace SNN {
     {
         uint32_t name = network.graph.size();
 
+        return addNode(network, name, index, mode);
+    }
+
+    std::shared_ptr<Node> NetworkEditor::addNode(Network& network, uint32_t name, uint32_t index, Node::NodeMode mode)
+    {
         std::shared_ptr<Node> node = network.graph.insert(std::make_pair(name, std::make_shared<Node>(name, index))).first->second;
         node->node->a = 0.02;
         node->node->b = 0.2;

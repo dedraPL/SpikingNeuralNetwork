@@ -11,6 +11,8 @@ namespace SNN {
 
 		static std::shared_ptr<Node> addNode(Network& network, uint32_t index, Node::NodeMode mode);
 
+		static std::shared_ptr<Node> addNode(Network& network, uint32_t name, uint32_t index, Node::NodeMode mode);
+
 		static std::shared_ptr<Synapse> addSynapse(Network& network, Node& source, Node& destination, SYNAPSE_TYPE r);
 
 		static void removeNode(Network& network, Node& node);

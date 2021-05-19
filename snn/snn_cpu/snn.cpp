@@ -152,7 +152,8 @@ PYBIND11_MODULE(snn, m) {
 
 	py::class_<SNN::NetworkEditor>(m, "NetworkEditor", "Network editing tools")
 		.def_static("addHiddenNode", &SNN::NetworkEditor::addHiddenNode, "network"_a, "add new hidden Node with next possible name and return it")
-		.def_static("addNode", &SNN::NetworkEditor::addNode, "network"_a, "index"_a, "mode"_a, "add new Node with name and mode and return it")
+		.def_static("addNode", py::overload_cast<SNN::Network&, uint32_t, SNN::Node::NodeMode>(&SNN::NetworkEditor::addNode), "network"_a, "index"_a, "mode"_a, "add new Node with index and mode and return it")
+		.def_static("addNode", py::overload_cast<SNN::Network&, uint32_t, uint32_t, SNN::Node::NodeMode>(&SNN::NetworkEditor::addNode), "network"_a, "name"_a, "index"_a, "mode"_a, "add new Node with name, index and mode and return it")
 		.def_static("addSynapse", &SNN::NetworkEditor::addSynapse, "network"_a, "source"_a, "destination"_a, "r"_a, "add new Synapse between source and destination Nodes with r resistance")
 		.def_static("removeNode", &SNN::NetworkEditor::removeNode, "network"_a, "node"_a, "remove node Node from network and all incoming and outcoming Synapses")
 		.def_static("removeSynapse", &SNN::NetworkEditor::removeSynapse, "network"_a, "source"_a, "destination"_a "remove Synapse between source and destination Nodes")
