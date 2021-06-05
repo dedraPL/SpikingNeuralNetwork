@@ -41,6 +41,9 @@ namespace SNN {
         std::vector<Node*>* getOutputsIdx() { return &outputsIdx; };
         uint32_t inputSize = 0, outputSize = 0;
         std::vector<std::vector<uint32_t>> graphOrder;
+        SYNAPSE_TYPE getSynapseC();
+        void setSynapseC(SYNAPSE_TYPE c);
+        SYNAPSE_TYPE* synapse_c;
     private:
         std::vector<Node*> inputsIdx, outputsIdx;
         template<class T>

@@ -4,41 +4,63 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <sstream>
-#include "neuron.hpp"
+#include <iomanip>
 #include "synapse.hpp"
+
+#define FORMAT "format"
+#define INPUTS "inputs"
+#define OUTPUTS "outputs"
+#define MATRIX "matrix"
+#define DESCRIPTION "description"
+#define SYNAPSE_C "synapse_c"
+#define MODELS "models"
+#define NETWORK_SIZE "network_size"
+#define NODES "nodes"
 
 using namespace std;
 
 namespace SNN {
     void NetworkLoader::load(std::string filename, Network& network) 
     {
-        fstream file;
+        std::fstream file;
         file.open(filename, ios::in);
         if(file.is_open()) {
-            std::string line;
-            vector<std::string> tmp;
-
-            //read line of input nodes
-            getline(file, line);
-            split(tmp, line, ' ');
-            vector<uint32_t> inputs(tmp.size());
-            transform(tmp.begin(), tmp.end(), inputs.begin(), [](string const& val) {return stoi(val);});
-
-            //read line of output nodes
-            getline(file, line);
-            split(tmp, line, ' ');
-            vector<uint32_t> outputs(tmp.size());
-            transform(tmp.begin(), tmp.end(), outputs.begin(), [](string const& val) {return stoi(val);});
-
-            //load whole matrix of weights
-            vector<vector<double>> matrix;
-            while(getline(file, line)) 
-            {
-                split(tmp, line, ' ');
-                matrix.push_back(vector<double>(tmp.size()));
-                transform(tmp.begin(), tmp.end(), matrix.back().begin(), [](string const& val) {return stod(val);});
-            }
+            nlohmann::json j;
+            file >> j;
             file.close();
+
+            std::vector<uint32_t> inputs;
+            j[INPUTS].get_to(inputs);
+
+            std::vector<uint32_t> outputs;
+            j[OUTPUTS].get_to(outputs);
+
+            if (j.contains(SYNAPSE_C))
+            {
+                network.setSynapseC(j[SYNAPSE_C]);
+            }
+
+            std::vector<Model> models;
+            models.push_back({0.02, 0.2, -65, 8});
+            std::vector<uint32_t> nodes;
+            if (j.contains(MODELS))
+            {
+                for (auto const& model : j[MODELS].at(MODELS))
+                {
+                    models.push_back(model.get<NetworkLoader::Model>());
+                }
+                j[MODELS].at(NODES).get_to(nodes);
+            }
+            
+            std::vector<std::vector<double>> matrix;
+            for (auto const& line : j[MATRIX])
+            {
+                std::stringstream stream((std::string)line);
+                matrix.push_back(std::vector<double>( 
+                    (std::istream_iterator<double>(stream)),
+                    istream_iterator<double>()
+                    ));
+            }
 
             network.inputSize = inputs.size();
             network.outputSize = outputs.size();
@@ -53,24 +75,15 @@ namespace SNN {
                 {
                     mode = Node::NodeMode::input;
                     index = std::distance(inputs.begin(), std::find(inputs.begin(), inputs.end(), x));
-                    //std::cout << "i ";
-                    //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                    //std::cout << '\n';
                 }
                 else if(find(outputs.begin(), outputs.end(), x) != outputs.end()) 
                 {
                     mode = Node::NodeMode::output;
                     index = std::distance(outputs.begin(), std::find(outputs.begin(), outputs.end(), x));
-                    //cout << "o ";
-                    //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                    //std::cout << '\n';
                 }
                 else 
                 {
                     mode = Node::NodeMode::hidden;
-                    //std::cout << "h ";
-                    //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                    //std::cout << '\n';
                 }
 
                 Node* node;
@@ -81,11 +94,15 @@ namespace SNN {
                         node = network.graph.insert(std::make_pair(x, std::make_shared<Node>(x, index))).first->second.get();
                     else
                         node = (*it).second.get();
-
-                    node->node->a = 0.02;
-                    node->node->b = 0.2;
-                    node->node->c = -65;
-                    node->node->d = 8;
+                    Model m;
+                    if (nodes.size() == matrix.size())
+                        m = models[nodes[x]];
+                    else
+                        m = models[0];
+                    node->node->a = m.a;
+                    node->node->b = m.b;
+                    node->node->c = m.c;
+                    node->node->d = m.d;
                     node->mode = mode;
                     node->index = index;
                 }
@@ -105,6 +122,7 @@ namespace SNN {
                             it = network.graph.find(y);
                         }
                         node->conn.push_back(std::make_shared<Synapse>(node, it->second.get(), matrix[x][y]));
+                        node->conn.back()->C = network.synapse_c;
                         network.graph[y]->sources.push_back(node->conn.back());
                     }
                 }
@@ -120,19 +138,17 @@ namespace SNN {
         file.open(filename, ios::in || ios::binary);
         if (file.is_open()) 
         {
-            uint8_t config;
-            file.read(reinterpret_cast<char*>(&config), sizeof(uint8_t));
-            
-            if (config & 1)
+            nlohmann::json j = nlohmann::json::from_msgpack(file);
+            file.close();
+
+            if (j[FORMAT] == "f")
             {
-                loadAndProcessBinFile<float>(&file, config, &network);
+                loadAndProcessBinFile<float>(j, network);
             }
             else
             {
-                loadAndProcessBinFile<double>(&file, config, &network);
+                loadAndProcessBinFile<double>(j, network);
             }
-            
-            file.close();
         }
         else
             throw NetworkLoader::FileNotFoundError(filename);
@@ -143,61 +159,77 @@ namespace SNN {
         if (network.graph.size() > 0 && network.getInputsIdx()->size() > 0 && network.getOutputsIdx()->size() > 0)
         {
             fstream file;
-            file.open(filename, ios::out);
-            
+
+            nlohmann::json j;
+            j[FORMAT] = typeid(Synapse::r) == typeid(float) ? "f" : "d";
+            j[SYNAPSE_C] = network.getSynapseC();
+            j[NETWORK_SIZE] = network.graph.size();
+            j[INPUTS] = nlohmann::json::array();
+            j[OUTPUTS] = nlohmann::json::array();
             for (auto const& val : *network.getInputsIdx())
             {
-                file << val->name;
-                if (&val != &network.getInputsIdx()->back())
-                    file << " ";
+                j[INPUTS].push_back(val->name);
             }
-            file << std::endl;
             for (auto const& val : *network.getOutputsIdx())
             {
-                file << val->name;
-                if (&val != &network.getOutputsIdx()->back())
-                    file << " ";
+                j[OUTPUTS].push_back(val->name);
             }
-            file << std::endl;
 
+            
+            j[MATRIX] = nlohmann::json::array();
             uint32_t size = network.graph.size();
+            std::vector<uint32_t> nodes;
+            std::vector<Model> models;
+            models.push_back({ 0.02, 0.2, -65, 8 });
             for (auto const& [key, val] : network.graph)
             {
+                std::stringstream matrix;
                 std::vector<std::shared_ptr<Synapse>> conn = val->getConn();
                 std::sort(std::begin(conn), std::end(conn), [](std::shared_ptr<Synapse> a, std::shared_ptr<Synapse> b)
                     {
                         return a->dest->name < b->dest->name;
                     });
                 std::vector<std::shared_ptr<Synapse>>::iterator conn_val = conn.begin();
-                
+
                 for (auto it = network.graph.begin(); it != network.graph.end(); ++it)
                 {
                     if (conn.size() > 0 && (*conn_val)->dest == it->second.get())
                     {
-                        file << (*conn_val)->r;
+                        matrix << (*conn_val)->r;
                         if (conn_val + 1 != conn.end())
                             ++conn_val;
                     }
                     else
-                        file << 0;
+                        matrix << 0;
                     if (it != network.graph.end()--)
-                        file << ' ';
+                        matrix << ' ';
                 }
-                /*for (uint32_t i = 0; i < size; i++)
+                auto node = val->node;
+                auto model = std::find_if(models.begin(), models.end(), [node](Model m) { 
+                    return approximatelyEqual(node->a, m.a, 0.0001) && approximatelyEqual(node->b, m.b, 0.0001) && approximatelyEqual(node->c, m.c, 0.0001) && approximatelyEqual(node->d, m.d, 0.0001);
+                    });
+                uint32_t index;
+                if (model == models.end())
                 {
-                    if (conn.size() > 0 && (*conn_val)->dest == network.graph[i].get())
-                    {
-                        file << (*conn_val)->r;
-                        if (conn_val + 1 != conn.end())
-                            ++conn_val;
-                    }
-                    else
-                        file << 0;
-                    if (i + 1 < size)
-                        file << ' ';
-                }*/
-                file << std::endl;
+                    models.push_back({ node->a, node->b, node->c, node->d });
+                    index = models.size() - 1;
+                }
+                else
+                {
+                    index = std::distance(models.begin(), model);
+                }
+                nodes.push_back(index);
+                j[MATRIX].push_back(matrix.str());
             }
+            if (models.size() > 1)
+            {
+                j[MODELS] = nlohmann::json();
+                j[MODELS][MODELS] = models;
+                j[MODELS][NODES] = nodes;
+            }
+
+            file.open(filename, ios::out);
+            file << std::setw(4) << j << std::endl;
             file.close();
         }
         else
@@ -208,74 +240,54 @@ namespace SNN {
     {
         if (network.graph.size() > 0 && network.getInputsIdx()->size() > 0 && network.getOutputsIdx()->size() > 0)
         {
-            fstream file;
-            file.open(filename, ios::out | ios::binary);
-
-            uint8_t config = 0;
-            config |= typeid(Synapse::r) == typeid(float);
-            file.write(reinterpret_cast<const char*>(&config), sizeof(config));
-            uint32_t size = network.graph.size();
-            file.write(reinterpret_cast<const char*>(&size), sizeof(size));
-            uint32_t io_size = network.getInputsIdx()->size();
-            file.write(reinterpret_cast<const char*>(&io_size), sizeof(io_size));
-            io_size = network.getOutputsIdx()->size();
-            file.write(reinterpret_cast<const char*>(&io_size), sizeof(io_size));
-
-            std::vector<Node*>* inputs;
-            std::vector<Node*>* outputs;
-            inputs = network.getInputsIdx();
-            outputs = network.getOutputsIdx();
-
-            for (auto const& val : *network.getInputsIdx())
-            {
-                file.write((char*)&val->name, sizeof(uint32_t));
-            }
-            for (auto const& val : *network.getOutputsIdx())
-            {
-                file.write((char*)&val->name, sizeof(uint32_t));
-            }
-
-            //file.write((char*)&inputs[0], inputs->size() * sizeof(uint32_t));
-            //file.write((char*)&outputs[0], outputs->size() * sizeof(uint32_t));
-
-            if (config & 1)
-                processAndSaveBinFile<float>(&file, &network);
+            if (typeid(Synapse::r) == typeid(float))
+                processAndSaveBinFile<float>(filename, network);
             else
-                processAndSaveBinFile<double>(&file, &network);
-
-            file.close();
+                processAndSaveBinFile<double>(filename, network);
         }
         else
             throw NetworkLoader::InvalidNetworkError();
     }
 
     template<class T>
-    void NetworkLoader::loadAndProcessBinFile(std::fstream* file, uint8_t config, Network* network)
+    void NetworkLoader::loadAndProcessBinFile(nlohmann::json& j, Network& network)
     {
-        uint32_t networkSize;
-        uint32_t inputsSize;
-        uint32_t outputsSize;
+        std::vector<uint32_t> inputs;
+        j[INPUTS].get_to(inputs);
 
-        file->read(reinterpret_cast<char*>(&networkSize), sizeof(uint32_t));
-        file->read(reinterpret_cast<char*>(&inputsSize), sizeof(uint32_t));
-        file->read(reinterpret_cast<char*>(&outputsSize), sizeof(uint32_t));
-        std::vector<uint32_t> inputs(inputsSize);
-        std::vector<uint32_t> outputs(outputsSize);
-        file->read((char*)&inputs[0], inputsSize * sizeof(uint32_t));
-        file->read((char*)&outputs[0], outputsSize * sizeof(uint32_t));
+        std::vector<uint32_t> outputs;
+        j[OUTPUTS].get_to(outputs);
 
+        if (j.contains(SYNAPSE_C))
+        {
+            network.setSynapseC(j[SYNAPSE_C]);
+        }
+
+        std::vector<Model> models;
+        models.push_back({ 0.02, 0.2, -65, 8 });
+        std::vector<uint32_t> nodes;
+        if (j.contains(MODELS))
+        {
+            for (auto const& model : j[MODELS].at(MODELS))
+            {
+                models.push_back(model.get<NetworkLoader::Model>());
+            }
+            j[MODELS].at(NODES).get_to(nodes);
+        }
+
+        uint32_t networkSize = j[NETWORK_SIZE];
         std::vector<std::vector<T>> matrix(networkSize);
-
+        auto& bin = j[MATRIX].get_binary();
         for (uint32_t i = 0; i < networkSize; i++)
         {
             matrix[i].resize(networkSize);
-            file->read(reinterpret_cast<char*>(&matrix[i][0]), networkSize * sizeof(T));
+            std::memcpy(&matrix[i][0], &bin[i * networkSize * sizeof(T)], networkSize * sizeof(T));
         }
 
-        network->inputSize = inputs.size();
-        network->outputSize = outputs.size();
+        network.inputSize = inputs.size();
+        network.outputSize = outputs.size();
 
-        network->graph = map<uint32_t, std::shared_ptr<Node>>();
+        network.graph = map<uint32_t, std::shared_ptr<Node>>();
         for (uint32_t x = 0; x != matrix.size(); x++)
         {
             Node::NodeMode mode;
@@ -285,63 +297,35 @@ namespace SNN {
             {
                 mode = Node::NodeMode::input;
                 index = std::distance(inputs.begin(), std::find(inputs.begin(), inputs.end(), x));
-                //std::cout << "i ";
-                //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                //std::cout << '\n';
             }
             else if (find(outputs.begin(), outputs.end(), x) != outputs.end())
             {
                 mode = Node::NodeMode::output;
                 index = std::distance(outputs.begin(), std::find(outputs.begin(), outputs.end(), x));
-                //cout << "o ";
-                //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                //std::cout << '\n';
             }
             else
             {
                 mode = Node::NodeMode::hidden;
-                //std::cout << "h ";
-                //std::for_each(matrix[x].begin(), matrix[x].end(), [](const double n) { std::cout << n << ' '; });
-                //std::cout << '\n';
             }
 
-            /*Neuron* node = new Neuron(to_string(x), 0.02, 0.2, -65, 8, index);
-            std::vector<std::shared_ptr<Synapse>> conn;
-
-            for (uint32_t y = 0; y != matrix[x].size(); y++)
-            {
-                if (matrix[x][y] != 0)
-                {
-                    
-                    auto it = network->graph.find(y);
-                    if (it == network->graph.end())
-                    {
-                        network->graph.insert(std::make_pair(y, std::make_shared<Network::Node>()));
-                        it = network->graph.find(y);
-                    }
-                    conn.push_back(std::make_shared<Synapse>(*it->second->node.get(), matrix[x][y]));
-                    network->graph[y]->sources.push_back(x);
-                }
-            }
-            auto it = network->graph.find(x);
-            if (it == network->graph.end())
-            {
-                network->graph.insert(std::make_pair(x, std::make_shared<Network::Node>()));
-            }
-            network->graph[x]->update(*node, mode, conn);*/
             Node* node;
-            auto it = network->graph.find(x);
-            if (it == network->graph.end() || (*it).second->node->a == 0)
+            auto it = network.graph.find(x);
+            if (it == network.graph.end() || (*it).second->node->a == 0)
             {
-                if (it == network->graph.end())
-                    node = network->graph.insert(std::make_pair(x, std::make_shared<Node>(x, index))).first->second.get();
+                if (it == network.graph.end())
+                    node = network.graph.insert(std::make_pair(x, std::make_shared<Node>(x, index))).first->second.get();
                 else
                     node = (*it).second.get();
 
-                node->node->a = 0.02;
-                node->node->b = 0.2;
-                node->node->c = -65;
-                node->node->d = 8;
+                Model m;
+                if (nodes.size() == matrix.size())
+                    m = models[nodes[x]];
+                else
+                    m = models[0];
+                node->node->a = m.a;
+                node->node->b = m.b;
+                node->node->c = m.c;
+                node->node->d = m.d;
                 node->mode = mode;
                 node->index = index;
             }
@@ -354,25 +338,43 @@ namespace SNN {
             {
                 if (matrix[x][y] != 0)
                 {
-                    auto it = network->graph.find(y);
-                    if (it == network->graph.end())
+                    auto it = network.graph.find(y);
+                    if (it == network.graph.end())
                     {
-                        network->graph.insert(std::make_pair(y, std::make_shared<Node>(y, 0)));
-                        it = network->graph.find(y);
+                        network.graph.insert(std::make_pair(y, std::make_shared<Node>(y, 0)));
+                        it = network.graph.find(y);
                     }
                     node->conn.push_back(std::make_shared<Synapse>(node, it->second.get(), matrix[x][y]));
-                    network->graph[y]->sources.push_back(node->conn.back());
+                    network.graph[y]->sources.push_back(node->conn.back());
                 }
             }
         }
     }
 
     template<class T>
-    void NetworkLoader::processAndSaveBinFile(std::fstream* file, Network* network)
+    void NetworkLoader::processAndSaveBinFile(std::string filename, Network& network)
     {
-        uint32_t size = network->graph.size();
-        T* buffer = new T[size];
-        for (auto const& [key, val] : network->graph)
+        nlohmann::json j;
+        j[FORMAT] = typeid(T) == typeid(float) ? "f" : "d";
+        j[SYNAPSE_C] = (T)network.getSynapseC();
+        j[NETWORK_SIZE] = network.graph.size();
+        j[INPUTS] = nlohmann::json::array();
+        j[OUTPUTS] = nlohmann::json::array();
+        for (auto const& val : *network.getInputsIdx())
+        {
+            j[INPUTS].push_back(val->name);
+        }
+        for (auto const& val : *network.getOutputsIdx())
+        {
+            j[OUTPUTS].push_back(val->name);
+        }
+
+        std::vector<uint32_t> nodes;
+        std::vector<Model> models;
+        uint32_t size = network.graph.size();
+        std::vector<uint8_t> buffer;
+        buffer.reserve(size * size * sizeof(T));
+        for (auto const& [key, val] : network.graph)
         {
             std::vector<std::shared_ptr<Synapse>> conn = val->getConn();
             std::sort(conn.begin(), conn.end(), [](const std::shared_ptr<Synapse>& a, const std::shared_ptr<Synapse>& b)
@@ -382,16 +384,52 @@ namespace SNN {
             std::vector<std::shared_ptr<Synapse>>::iterator conn_val = conn.begin();
             for (uint32_t i = 0; i < size; i++)
             {
+                float data;
                 if (conn.size() > 0 && (*conn_val)->dest->name == i)
                 {
-                    buffer[i] = (*conn_val)->r;
+                    data = (*conn_val)->r;
                     if (conn_val + 1 != conn.end())
                         ++conn_val;
                 }
                 else
-                    buffer[i] = 0;
+                    data = 0;
+                uint8_t bytes[sizeof(T)];
+                std::memcpy(bytes, &data, sizeof(T));
+                buffer.insert(buffer.end(), bytes, bytes + sizeof(T));
             }
-            file->write(reinterpret_cast<const char*>(buffer), sizeof(T) * size);
+            auto node = val->node;
+            auto model = std::find_if(models.begin(), models.end(), [node](Model m) {
+                return approximatelyEqual(node->a, m.a, 0.0001) && approximatelyEqual(node->b, m.b, 0.0001) && approximatelyEqual(node->c, m.c, 0.0001) && approximatelyEqual(node->d, m.d, 0.0001);
+                });
+            uint32_t index;
+            if (model == models.end())
+            {
+                models.push_back({ node->a, node->b, node->c, node->d });
+                index = models.size() - 1;
+            }
+            else
+            {
+                index = std::distance(models.begin(), model);
+            }
+            nodes.push_back(index);
+        }
+        if (models.size() > 1)
+        {
+            j[MODELS] = nlohmann::json();
+            models.erase(models.begin());
+            j[MODELS][MODELS] = models;
+            j[MODELS][NODES] = nodes;
+        }
+
+        j[MATRIX] = nlohmann::json::binary(buffer);
+
+        fstream file;
+        file.open(filename, ios::out | ios::binary);
+        if (file.is_open())
+        {
+            std::vector<uint8_t> bin = j.to_msgpack(j);
+            file.write((char*)&bin[0], bin.size() * sizeof(uint8_t));
+            file.close();
         }
     }
 

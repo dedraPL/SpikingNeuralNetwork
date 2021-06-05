@@ -4,7 +4,9 @@
 #include <exception>
 #include <map>
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include "network.hpp"
+#include "neuron.hpp"
 
 namespace SNN {
     class NetworkLoader {
@@ -45,13 +47,27 @@ namespace SNN {
                 return _msg.c_str();
             }
         };
-    
+
+        struct Model {
+            NEURON_TYPE a;
+            NEURON_TYPE b;
+            NEURON_TYPE c;
+            NEURON_TYPE d;
+        };
+        
     private:
         template<class T>
-        static void loadAndProcessBinFile(std::fstream* file, uint8_t config, Network* network);
+        static void loadAndProcessBinFile(nlohmann::json& j, Network& network);
         template<class T>
-        static void processAndSaveBinFile(std::fstream* file, Network* network);
+        static void processAndSaveBinFile(std::string filename, Network& network);
         
         static std::vector<std::string>& split(std::vector<std::string>& result, const std::string& input, char delimiter);
+
+        static bool approximatelyEqual(NEURON_TYPE a, NEURON_TYPE b, NEURON_TYPE epsilon)
+        {
+            return std::abs(a - b) <= ((std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
+        }
     };
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(NetworkLoader::Model, a, b, c, d)
 }

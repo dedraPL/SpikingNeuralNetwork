@@ -3,6 +3,8 @@
 namespace SNN { 
     Network::Network() 
     {
+        this->synapse_c = new SYNAPSE_TYPE[1];
+        this->setSynapseC(0);
     }
 
     Network::~Network()
@@ -161,5 +163,15 @@ namespace SNN {
     Eigen::VectorXf Network::runf(const Eigen::Ref<const Eigen::VectorXf>& inputs)
     {
         return this->run<Eigen::VectorXf>(inputs);
+    }
+
+    SYNAPSE_TYPE Network::getSynapseC()
+    {
+        return this->synapse_c[0];
+    }
+
+    void Network::setSynapseC(SYNAPSE_TYPE c)
+    {
+        this->synapse_c[0] = c;
     }
 }
