@@ -138,6 +138,7 @@ PYBIND11_MODULE(snn, m) {
 		.def(py::init<SNN::Node*, SNN::Node*, SYNAPSE_TYPE>(), "src"_a, "dest"_a, "r"_a, "New synapse between src Node and dest Node with r resistance")
 		.def("CalculateCurrent", &SNN::Synapse::CalculateCurrent, "v1"_a, "v2"_a, "calculates current between v1 and v2 voltages with r resistor")
 		.def("ChangeResistance", &SNN::Synapse::ChangeResistance, "r"_a, "change Synapse resistance")
+		.def("ChangeCapacitance", &SNN::Synapse::ChangeCapacitance, "c"_a, "change synapse capacitance")
 		.def_readwrite("r", &SNN::Synapse::r, "synapse resistance")
 		.def_readwrite("dest", &SNN::Synapse::dest, "destination Node")
 		.def_readwrite("src", &SNN::Synapse::src, "source Node")
@@ -169,6 +170,8 @@ PYBIND11_MODULE(snn, m) {
 		.def("getGraph", &SNN::Network::getGraph, py::return_value_policy::reference, "returns graph map")
 		.def("getInputNodes", &SNN::Network::getInputsIdx, py::return_value_policy::reference, "returns vector of inputs indexes")
 		.def("getOutputNodes", &SNN::Network::getOutputsIdx, py::return_value_policy::reference, "returns vector of outputs indexes")
+		.def("getSynapseC", &SNN::Network::getSynapseC, "returns synapses capacitance in the network")
+		.def("setSynapseC", &SNN::Network::setSynapseC, "c"_a, "set synapses capacitance in the network")
 		.def_readwrite("graph", &SNN::Network::graph, py::return_value_policy::reference, "map of graph")
 		.def_readwrite("graphOrder", &SNN::Network::graphOrder, "vector of Node's names in corresponding layers")
 		;
