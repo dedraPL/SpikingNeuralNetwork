@@ -9,22 +9,62 @@ After reading input file you need to call BFSSort on the network object to slice
 
 Currently there is available only Izhikevich model. I will add more models in the future.
 
+Synapse is modeled as a parallel RC element
 
+![formula](/doc/images/synapse_eq.gif)
+
+## GPU VERSION IS CURRENTLY OUTDATED
 
 ## INPUT FILE FORMAT
+Both TXT and binary format are designed with same principals. They are handled like JSON files (or MessagePack).
+
+Mandatory fields:
+* inputs
+* outputs
+* matrix
+
+Optional fields:
+* format
+* description
+* synapse_c
+* network_size
+* models
+
+Some of optional fields are mandatory in binary format.
+
+Inputs is an array of the input nodes in the network. Outputs is an array of the output nodes in the network. Matrix is an adjacency matrix merged with weights. Format of the matrix is different in TXT and binary format and described in corresponding section.
+
+Format is a string representing precision of real number data ("f" - 32 bits, "d" - 64 bits). Description is a text description of the network. Synapse_c is a C<sub>in</sub> capacitance of every synapse in the network. If synapse_c is omitted then is setted to 0. Network_size is an count of all neurons in the network. 
+
+Models is an array of neuron model parameters and array of node membership. Models field require models array of object of 4 parameters: a, b, c, d and nodes array of membership of every neuron in the network. First model (index 0) is default and should not be present in models array. Parameters of the default model are a = 0.02, b = 0.2, c = -65, d = 8. If whole models array is omitted, then every neuron take default parameters.
+
+In this example, only 4th and 6th neurons have non-default parameters.
+```
+"models": {
+    "models": [
+        {
+            "a": -0.02,
+            "b": -1,
+            "c": -65,
+            "d": 8
+        }
+    ],
+    "nodes": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+    ]
+}
+```
+
 ### TXT FILE
-separator: space
-
-first line is a list of input neuron indexes
-
-second line is a list of output neuron indexes
-
-next there is an adjacency matrix merged with weights
+All data are formated as a JSON. In TXT format, mandatory fields: inputs, outputs and matrix. Matrix is an array of strings. Each element of array is signle row of array. I chose this format, because TXT file is intended to be easy to read by human.
 
 example matrix
 ```
-0 1
-5 6
 0 0 1 1 1 0 0
 0 0 1 1 1 0 0
 0 0 0 0 0 1 1
@@ -40,21 +80,7 @@ produces network like this
 where all edges have weight = 1
 
 ### BIN FILE
-1. 8 bits (uint8) for settings
-    1. precision (1 if float, 0 if double)
-    1. not used
-    1. not used
-    1. not used
-    1. not used
-    1. not used
-    1. not used
-    1. not used
-1. 32 bits (uint32) num of all neurons N
-1. 32 bits (uint32) num of input neurons I
-1. 32 bits (uint32) num of output neurons O
-1. input neuron indexes (len of I)
-1. output neuron indexes (len of O)
-1. adjacency matrix (len of N*N) with specified precision (float or double)
+Binary file is formated as a [MessagePack](https://msgpack.org). Mandatory fields: format, inputs, outputs, matrix, network_size. Every field is converted to the binary according to MessagePack format except matrix, with is formated as an ext8, ext16 or ext32 field. Matrix is formated as a series of float or double data and should be size of (network_size * network_size) * bytes_per_precision bytes. Format and network_size are mandatory to determine how many bytes per connection and per row loader need to read.
 
 # KNOWN ISSUES
 
