@@ -85,6 +85,9 @@
     <ClInclude Include="..\..\core\src\node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\core\src\decoders\timeToFirstSpike.hpp">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\core\src\cudaNetwork.cu">

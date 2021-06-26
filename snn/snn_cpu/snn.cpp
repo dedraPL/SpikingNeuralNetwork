@@ -16,6 +16,7 @@
 #include "encoders/transparent.hpp"
 #include "decoders/transparent.hpp"
 #include "decoders/averageOverTime.hpp"
+#include "decoders/timeToFirstSpike.hpp"
 #include "decoders/binary.hpp"
 
 namespace py = pybind11;
@@ -97,6 +98,11 @@ void declareDecoders(py::module& m, const char* typestr)
 	py::class_<SNN::Decoder::Binary<type>, SNN::Decoder::IDecoder<type>>(m, pyclass_name.c_str())
 		.def(py::init<>())
 		.def("decode", &SNN::Decoder::Binary<type>::decode);
+
+	pyclass_name = std::string("TimeToFirstSpike") + std::string(typestr);
+	py::class_<SNN::Decoder::TimeToFirstSpike<type>, SNN::Decoder::IDecoder<type>>(m, pyclass_name.c_str())
+		.def(py::init<uint32_t, uint32_t>())
+		.def("decode", &SNN::Decoder::TimeToFirstSpike<type>::decode);
 }
 
 PYBIND11_MODULE(snn, m) {

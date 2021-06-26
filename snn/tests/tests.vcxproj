@@ -162,6 +162,7 @@
     <ClInclude Include="..\..\core\src\decoders\averageOverTime.hpp" />
     <ClInclude Include="..\..\core\src\decoders\binary.hpp" />
     <ClInclude Include="..\..\core\src\decoders\decoder.hpp" />
+    <ClInclude Include="..\..\core\src\decoders\timeToFirstSpike.hpp" />
     <ClInclude Include="..\..\core\src\decoders\transparent.hpp" />
     <ClInclude Include="..\..\core\src\encoders\averageOverTime.hpp" />
     <ClInclude Include="..\..\core\src\encoders\encoder.hpp" />
